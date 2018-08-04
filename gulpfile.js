@@ -14,15 +14,6 @@ gulp.task('clean', function () {
 });
 
 gulp.task('compile-flattened', function() {
-    // webpack({
-    //     entry: './src/main.js',
-    //     output: {
-    //         filename: 'main.js',
-    //         path: path.resolve(__dirname, 'integTest')
-    //     }
-    // },function() {
-    //
-    // });
     gulp.src('./src/main.js')
         .pipe(webpack({
             mode: 'production',

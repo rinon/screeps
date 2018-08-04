@@ -4,9 +4,8 @@
   "description": "",
   "main": "gulpfile.js",
   "scripts": {
-    "start": "gulp watch",
-    "deploy-prod": "gulp build",
-    "test": "gulp test"
+    "start": "gulp",
+    "test": "jasmine"
   },
   "repository": {
     "type": "git",
