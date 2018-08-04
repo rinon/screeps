@@ -7,10 +7,21 @@ const webpack = require('webpack-stream');
 // const path = require('path');
 const gulpInsert = require('gulp-insert');
 const gulpDotFlatten = require('./libs/gulp-dot-flatten.js');
+const gulpJasmine = require('gulp-jasmine');
 
 gulp.task('clean', function () {
     return gulp.src(['dist/tmp/', 'dist/'], { read: false, allowEmpty: true })
         .pipe(clean());
+});
+
+gulp.task('unit-test', function() {
+    return gulp.src('./spec/unit_tests/**/*[sS]pec.js')
+        .pipe(gulpJasmine());
+});
+
+gulp.task('integration-test', function() {
+    return gulp.src('./spec/integ_tests/**/*[sS]pec.js')
+        .pipe(gulpJasmine());
 });
 
 gulp.task('compile-flattened', function() {
