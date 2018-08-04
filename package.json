@@ -1,0 +1,35 @@
+{
+  "name": "screepsjsskeleton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "start": "gulp watch",
+    "deploy-prod": "gulp build",
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Multitallented/ScreepsJSSkeleton.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Multitallented/ScreepsJSSkeleton/issues"
+  },
+  "homepage": "https://github.com/Multitallented/ScreepsJSSkeleton#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-collect": "^0.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-tslint": "^6.0.1",
+    "gulp-typescript": "^3.0.0",
+    "gulp-util": "^3.0.7",
+    "lodash": "^4.14.0",
+    "recast": "^0.11.10",
+    "run-sequence": "^2.2.1",
+    "through2": "^2.0.1"
+  },
+  "dependencies": {}
+}
