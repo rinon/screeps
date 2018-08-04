@@ -21,7 +21,6 @@
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
-    "gulp-collect": "^0.1.0",
     "gulp-rename": "^1.2.2",
     "gulp-tslint": "^6.0.1",
     "gulp-typescript": "^3.0.0",
