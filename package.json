@@ -21,14 +21,12 @@
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
-    "gulp-rename": "^1.2.2",
-    "gulp-tslint": "^6.0.1",
-    "gulp-typescript": "^3.0.0",
-    "gulp-util": "^3.0.7",
+    "gulp-insert": "^0.5.0",
     "lodash": "^4.14.0",
     "recast": "^0.11.10",
     "run-sequence": "^2.2.1",
-    "through2": "^2.0.1"
+    "through2": "^2.0.1",
+    "webpack-stream": "^5.1.0"
   },
   "dependencies": {}
 }
