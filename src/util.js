@@ -3,14 +3,8 @@ module.exports = {
     MOVE: "MOVE",
     TRANSFER: "TRANSFER",
     UPGRADE_CONTROLLER: "UPGRADE_CONTROLLER",
-    BUILD: "BUILD",
-    REPAIR: "REPAIR",
     WITHDRAW: "WITHDRAW",
-    CLAIM: "CLAIM",
-    RESERVE: "RESERVE",
-    PICKUP: "PICKUP",
 
-    USERNAME: 'REPLACE_ME',
     checkIfInUse: function(room, find, callingCreep, action, filter) {
         let sourcesArray = [];
         if (filter) {
