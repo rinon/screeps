@@ -18,7 +18,7 @@ let roleUpgrader = {
             }
         }
         else {
-            let targetSource = Util.checkIfInUse(creep.room, FIND_SOURCES, creep, Util.HARVEST);
+            let targetSource = Util.checkIfInUse(creep.room, FIND_SOURCES, creep);
             if (targetSource !== undefined && creep.harvest(targetSource) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(targetSource, {visualizePathStyle: {stroke: '#ffaa00'}});
             }
