@@ -1,7 +1,7 @@
 const roleUpgrader = require('./roles/role.upgrader');
 const respawn = require('./respawn');
 
-module.expports = {
+module.exports = {
     loop: function() {
 
         for(var name in Memory.creeps) {

@@ -19,15 +19,37 @@ gulp.task('unit-test', function() {
         .pipe(gulpJasmine());
 });
 
-gulp.task('integration-test', function() {
+gulp.task('integ-test', function() {
     return gulp.src('./spec/integ_tests/**/*[sS]pec.js')
-        .pipe(gulpJasmine());
+        .pipe(gulpJasmine({reporter: {
+            fails: 0,
+            successes: 0,
+            specDone: function(result) {
+                console.log("--------------------------------");
+                console.log('\x1b[36mSpec: ' + result.description + ' was ' + result.status + "\x1b[0m");
+                for(var i = 0; i < result.failedExpectations.length; i++) {
+                    console.log('Failure: ' + result.failedExpectations[i].message);
+                    console.log(result.failedExpectations[i].stack);
+                }
+                if (result.status == "passed") {
+                    this.successes++;
+                } else {
+                    this.fails++;
+                }
+            },
+            jasmineDone: function() {
+                console.log("================================");
+                console.log("\x1b[36mSuccess: " + this.successes + ", Fails: " + this.fails + "\x1b[0m");
+                process.exit();
+            }
+            }}));
 });
 
 gulp.task('compile-flattened', function() {
     gulp.src('./src/main.js')
         .pipe(webpack({
-            mode: 'production',
+            mode: 'development',
+            // mode: 'production', Minifying it makes it unreadable my the mock server
             watch: false,
             output: {
                 filename: 'main.js'
