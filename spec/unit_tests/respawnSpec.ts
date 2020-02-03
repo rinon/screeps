@@ -1,9 +1,9 @@
-const respawnSrc = require('../../src/respawn');
+import {Respawn} from "../../src/respawn";
 
 describe("Respawn Tests", function() {
 
     beforeEach(function() {
-        // require('../mocks/game')();
+        require('../mocks/game')();
         Game.spawns['Spawn1'].room.energyAvailable = 200;
         Game.spawns['Spawn1'].room.energyCapacityAvailable = 600;
         Game.getObjectById = function(id) {
@@ -12,7 +12,7 @@ describe("Respawn Tests", function() {
     });
 
     it("Respawn should build upgrader if none exist and energy at least 200", function() {
-        respawnSrc.run();
+        Respawn.run();
         expect(Game.spawns['Spawn1'].spawning['memory'].role).toBe("upgrader");
     });
 
@@ -21,7 +21,7 @@ describe("Respawn Tests", function() {
             require('../mocks/creep')([MOVE, CARRY, WORK], 'Upgrader1',
                 {memory: {role: "upgrader"}}, Game.rooms.Room1)
         );
-        respawnSrc.run();
+        Respawn.run();
         expect(Game.spawns['Spawn1'].spawning).toBe(null);
     });
 });

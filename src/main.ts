@@ -1,6 +1,7 @@
-const roleUpgrader = require('./roles/role.upgrader');
-const respawn = require('./respawn');
+import {Respawn} from "./respawn";
+import * as _ from "lodash";
 
+const roleUpgrader = require('./roles/role.upgrader');
 module.exports = {
     loop: function() {
 
@@ -10,7 +11,7 @@ module.exports = {
             }
         }
 
-        respawn.run();
+        Respawn.run();
 
         _.forEach(Game.creeps, (creep) => {
             if(creep.memory['role'] === 'upgrader') {

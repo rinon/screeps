@@ -59,7 +59,7 @@ gulp.task('compile-flattened', function() {
         .pipe(gulpInsert.prepend('module.exports='))
         .pipe(gulp.dest('./integTest'));
     return gulp.src('src/**/*.ts')
-        .pipe(ts({removeComments: true, moduleResolution: 'node', isolatedModules: true, target: 'ES6'}))
+        .pipe(ts({removeComments: true, module: 'commonjs', isolatedModules: true, target: 'ES6'}))
         .pipe(gulpDotFlatten(0))
         .pipe(gulp.dest('dist/'));
 });

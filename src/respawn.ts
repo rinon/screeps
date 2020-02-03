@@ -1,14 +1,16 @@
+import * as _ from "lodash";
+
 let creepUtil = require('./creep.util');
 
-module.exports = {
-    spawnACreep: function(spawn, key, energy, memory) {
+export class Respawn {
+    static spawnACreep = function(spawn, key, energy, memory) {
         let newName = key.charAt(0).toUpperCase() + key.slice(1) + Game.time;
         let creepData = creepUtil.buildBestCreep(key, energy, memory);
         spawn.spawnCreep(creepData.bodyArray, newName,
             creepData.memory);
-    },
+    };
 
-    run: function() {
+    static run = function() {
         let creepCount = {};
 
         _.forEach(Game.spawns, (spawn) => {
@@ -48,9 +50,9 @@ module.exports = {
                     {align: 'left', opacity: 0.8});
             }
         });
-    },
+    };
 
-    saySomething: function(spawnId, message) {
+    static saySomething = function(spawnId, message) {
         let spawn:StructureSpawn = Game.getObjectById(spawnId);
         if (!spawn || spawn.spawning || !spawn.room.visual) {
             return;
@@ -60,5 +62,5 @@ module.exports = {
             spawn.pos.x + 1,
             spawn.pos.y,
             {align: 'left', opacity: 0.8});
-    }
-};
+    };
+}
