@@ -1,5 +1,5 @@
-let upgraderScript = require('../../src/roles/role.upgrader');
-let Util = require('../../src/util');
+let upgraderScript = require('../../dist/roles.role.upgrader');
+let Util = require('../../dist/util');
 
 describe("Upgrader Tests", function() {
     let upgrader1 = null;

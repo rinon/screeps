@@ -1,4 +1,4 @@
-const respawn = require('../../src/respawn');
+const respawn = require('../../dist/respawn');
 
 describe("Respawn Tests", function() {
 

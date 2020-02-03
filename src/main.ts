@@ -13,7 +13,7 @@ module.exports = {
         respawn.run();
 
         _.forEach(Game.creeps, (creep) => {
-            if(creep.memory.role === 'upgrader') {
+            if(creep.memory['role'] === 'upgrader') {
                 roleUpgrader.run(creep);
             }
         });

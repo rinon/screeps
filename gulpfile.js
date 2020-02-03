@@ -8,6 +8,7 @@ const webpack = require('webpack-stream');
 const gulpInsert = require('gulp-insert');
 const gulpDotFlatten = require('./libs/gulp-dot-flatten.js');
 const gulpJasmine = require('gulp-jasmine');
+const ts = require('gulp-typescript');
 
 gulp.task('clean', function () {
     return gulp.src(['dist/tmp/', 'dist/'], { read: false, allowEmpty: true })
@@ -57,7 +58,8 @@ gulp.task('compile-flattened', function() {
         }))
         .pipe(gulpInsert.prepend('module.exports='))
         .pipe(gulp.dest('./integTest'));
-    return gulp.src('src/**/*.js')
+    return gulp.src('src/**/*.ts')
+        .pipe(ts({removeComments: true, moduleResolution: 'node', isolatedModules: true, target: 'ES6'}))
         .pipe(gulpDotFlatten(0))
         .pipe(gulp.dest('dist/'));
 });
@@ -67,6 +69,6 @@ gulp.task('compile', function() {
 });
 
 gulp.task('watchLocal', function () {
-    gulp.watch('src/**/*.js', ['compile']);
+    gulp.watch('src/**/*.ts', ['compile']);
 });
 gulp.task('default', ['compile', 'watchLocal']);
