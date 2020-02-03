@@ -4,7 +4,8 @@
   "description": "",
   "main": "gulpfile.js",
   "scripts": {
-    "start": "gulp watchLocal"
+    "start": "gulp",
+    "test": "jasmine"
   },
   "repository": {
     "type": "git",
@@ -19,14 +20,15 @@
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
-    "gulp-rename": "^1.2.2",
-    "gulp-tslint": "^6.0.1",
-    "gulp-typescript": "^3.0.0",
-    "gulp-util": "^3.0.7",
-    "lodash": "^4.17.15",
+    "gulp-insert": "^0.5.0",
+    "gulp-jasmine": "^4.0.0",
+    "jasmine": "^3.1.0",
+    "lodash": "^4.14.0",
     "recast": "^0.11.10",
     "run-sequence": "^2.2.1",
-    "through2": "^2.0.5",
+    "screeps-server-mockup": "^1.1.0",
+    "through2": "^2.0.1",
+    "webpack-stream": "^5.1.0",
     "natives": "^1.1.6"
   }
 }

@@ -1,8 +1,21 @@
-var roleUpgrader = require('./roles/role.upgrader');
+const roleUpgrader = require('./roles/role.upgrader');
+const respawn = require('./respawn');
 
-module.expports = {
+module.exports = {
     loop: function() {
-        roleUpgrader.run();
-        console.log('hi');
+
+        for(var name in Memory.creeps) {
+            if(!Game.creeps[name]) {
+                delete Memory.creeps[name];
+            }
+        }
+
+        respawn.run();
+
+        _.forEach(Game.creeps, (creep) => {
+            if(creep.memory.role === 'upgrader') {
+                roleUpgrader.run(creep);
+            }
+        });
     }
 };
