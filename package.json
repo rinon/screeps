@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Multitallented/ScreepsTSSkeleton#readme",
   "devDependencies": {
+    "@types/jest": "^25.1.1",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.7.0",
     "@types/screeps": "^3.0.0",
