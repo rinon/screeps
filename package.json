@@ -1,5 +1,5 @@
 {
-  "name": "screepsjsskeleton",
+  "name": "screepstsskeleton",
   "version": "1.0.0",
   "description": "",
   "main": "gulpfile.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Multitallented/ScreepsJSSkeleton.git"
+    "url": "git+https://github.com/Multitallented/ScreepsTSSkeleton.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Multitallented/ScreepsJSSkeleton/issues"
+    "url": "https://github.com/Multitallented/ScreepsTSSkeleton/issues"
   },
-  "homepage": "https://github.com/Multitallented/ScreepsJSSkeleton#readme",
+  "homepage": "https://github.com/Multitallented/ScreepsTSSkeleton#readme",
   "devDependencies": {
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.7.0",
