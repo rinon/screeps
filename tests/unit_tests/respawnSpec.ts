@@ -11,12 +11,12 @@ describe("Respawn Tests", function() {
         }
     });
 
-    it("Respawn should build upgrader if none exist and energy at least 200", function() {
+    test("Respawn should build upgrader if none exist and energy at least 200", function() {
         Respawn.run();
         expect(Game.spawns['Spawn1'].spawning['memory'].role).toBe("upgrader");
     });
 
-    it("Respawn should not build upgrader if one exists", function() {
+    test("Respawn should not build upgrader if one exists", function() {
         Game.spawns['Spawn1'].room['entities'][FIND_CREEPS].push(
             require('../mocks/creep')([MOVE, CARRY, WORK], 'Upgrader1',
                 {memory: {role: "upgrader"}}, Game.rooms.Room1)

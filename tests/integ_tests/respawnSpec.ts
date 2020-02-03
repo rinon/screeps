@@ -1,5 +1,5 @@
+import _ from "lodash";
 const serverStart = require('../helpers/serverStartup');
-const _ = require('lodash');
 
 describe("Respawn Tests", function() {
     let server = undefined;

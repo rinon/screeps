@@ -5,7 +5,7 @@
   "main": "gulpfile.js",
   "scripts": {
     "start": "gulp",
-    "test": "jasmine"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -27,14 +27,27 @@
     "gulp-insert": "^0.5.0",
     "gulp-jasmine": "^4.0.0",
     "gulp-typescript": "^6.0.0-alpha.1",
-    "jasmine": "^3.1.0",
+    "jest": "^25.1.0",
     "lodash": "^4.14.0",
     "natives": "^1.1.6",
     "recast": "^0.11.10",
     "run-sequence": "^2.2.1",
     "screeps-server-mockup": "^1.5.0",
     "through2": "^2.0.1",
+    "ts-jest": "^25.1.0",
     "typescript": "^3.7.5",
     "webpack-stream": "^5.1.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ]
   }
 }

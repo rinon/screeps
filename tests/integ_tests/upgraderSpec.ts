@@ -1,5 +1,6 @@
+import _ from "lodash";
+
 const serverStart = require('../helpers/serverStartup');
-const _ = require('lodash');
 
 describe("Upgrader Tests", function() {
     let server = undefined;
@@ -52,7 +53,7 @@ describe("Upgrader Tests", function() {
                 let upgrader = null;
                 let controllerId = null;
                 let roomObjects = await world.roomObjects('W0N1');
-                _.forEach(roomObjects, null, (obj) => {
+                _.forEach(roomObjects, (obj) => {
                     if (obj.type === 'controller') {
                         controllerId = obj._id;
                     }
