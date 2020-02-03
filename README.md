@@ -1,6 +1,6 @@
 # ScreepsTSSkeleton
 
-A Typescript setup for compiling and testing a Screeps bot. Uses Jasmine for testing.
+A Typescript setup for compiling and testing a Screeps bot. Uses Jest for testing.
 Runs integration tests on a mock server using screeps-server-mockup.
 Compiles down to a single folder of JS files in ES6.
 
