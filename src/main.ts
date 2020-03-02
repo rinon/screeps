@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import { CreepController } from "./creeps/creep-controller";
 import { RoomController } from "./room/room-controller";
 
@@ -10,6 +9,6 @@ module.exports = {
             }
         }
         new CreepController();
-        RoomController.run();
+        RoomController.runRooms();
     }
 };
