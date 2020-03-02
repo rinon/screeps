@@ -1,6 +1,5 @@
 'use strict';
 
-const runSequence = require('run-sequence');
 const clean = require('gulp-clean');
 const gulp = require('gulp');
 const webpack = require('webpack-stream');
@@ -47,7 +46,14 @@ gulp.task('integ-test', function() {
 });
 
 gulp.task('compile-flattened', function() {
-    gulp.src('./src/main.js')
+    return gulp.src('src/**/*.ts')
+        .pipe(ts({removeComments: true, module: 'commonjs', isolatedModules: true, target: 'ES6'}))
+        .pipe(gulpDotFlatten(0))
+        .pipe(gulp.dest('dist/'));
+});
+
+gulp.task('compile-integ', function() {
+    return gulp.src('./dist/main.js')
         .pipe(webpack({
             mode: 'development',
             // mode: 'production', Minifying it makes it unreadable my the mock server
@@ -58,17 +64,11 @@ gulp.task('compile-flattened', function() {
         }))
         .pipe(gulpInsert.prepend('module.exports='))
         .pipe(gulp.dest('./integTest'));
-    return gulp.src('src/**/*.ts')
-        .pipe(ts({removeComments: true, module: 'commonjs', isolatedModules: true, target: 'ES6'}))
-        .pipe(gulpDotFlatten(0))
-        .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('compile', function() {
-    runSequence('clean', 'compile-flattened');
-});
+gulp.task('compile', gulp.series('clean', 'compile-flattened', 'compile-integ'));
 
 gulp.task('watchLocal', function () {
-    gulp.watch('src/**/*.ts', ['compile']);
+    gulp.watch('src/**/*.ts', gulp.series('compile'));
 });
-gulp.task('default', ['compile', 'watchLocal']);
+gulp.task('default', gulp.series('compile', 'watchLocal'));
