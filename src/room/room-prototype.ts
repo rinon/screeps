@@ -1,5 +1,10 @@
 const findNextEnergySource = function() {
-    
+}
+
+declare global {
+    interface Room {
+        findNextEnergySource();
+    }
 }
 
 export class RoomPrototype {
