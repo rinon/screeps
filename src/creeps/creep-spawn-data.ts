@@ -3,8 +3,8 @@ import * as _ from "lodash";
 export class CreepSpawnData {
     public bodyArray: Array<BodyPartConstant>;
     public name: string;
-    public options: Object;
-    public minPercentCapacity:number;
+    public options: SpawnOptions;
+    public minPercentCapacity: number;
 
     static getBodyPartCost(bodyPartConstant:BodyPartConstant):number {
         switch (bodyPartConstant) {
