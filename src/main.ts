@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import {CreepController} from "./creeps/creep-controller";
 
 module.exports = {
     loop: function() {
@@ -7,5 +8,6 @@ module.exports = {
                 delete Memory.creeps[name];
             }
         }
+        new CreepController();
     }
 };
