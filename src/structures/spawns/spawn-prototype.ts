@@ -1,5 +1,3 @@
-import {CreepSpawnData} from "../../creeps/creep-spawn-data";
-import {Upgrader} from "../../creeps/roles/upgrader";
 
 const spawnNextCreep = function() {
     if (this.spawning) {
@@ -7,7 +5,7 @@ const spawnNextCreep = function() {
         return;
     }
 
-    let nextCreepToSpawn = CreepSpawnData.build(Upgrader.KEY, Upgrader.buildBodyArray(Math.min(this.energyAvailable, 600)), 0);
+    let nextCreepToSpawn = this.room.getPlanner();
     if (nextCreepToSpawn && nextCreepToSpawn.options &&
         nextCreepToSpawn.options['memory'] && nextCreepToSpawn.options['memory']['role']) {
         nextCreepToSpawn.options['memory']['homeRoom'] = this.room.name;
