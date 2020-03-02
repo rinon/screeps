@@ -36,7 +36,8 @@ const findNextEnergySource = function(creep: Creep) {
     let assignments: Object = this.memory['source_assignments'];
     _.forEach(assignments, function(assignment: Object, source: String) {
         assignment = _.filter(assignment, function(creep_id: string) {
-            return Game.creeps[creep_id].memory['target'] == source;
+            let creep: Creep = Game.creeps[creep_id];
+            return creep ? creep.memory['target'] == source : false;
         });
     });
 
