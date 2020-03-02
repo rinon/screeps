@@ -2,7 +2,7 @@ import {CreepSpawnData} from "../../creeps/creep-spawn-data";
 
 const spawnNextCreep = function() {
     if (this.spawning) {
-        this.room.displayMessage(this.pos, this.spawning.name);
+        // this.room.displayMessage(this.pos, this.spawning.name);
         return;
     }
 
@@ -10,7 +10,7 @@ const spawnNextCreep = function() {
     if (nextCreepToSpawn && nextCreepToSpawn.options &&
         nextCreepToSpawn.options['memory'] && nextCreepToSpawn.options['memory']['role']) {
         nextCreepToSpawn.options['memory']['homeRoom'] = this.room.name;
-        this.room.displayMessage(this.pos, nextCreepToSpawn.options['memory']['role']);
+        // this.room.displayMessage(this.pos, nextCreepToSpawn.options['memory']['role']);
         if (nextCreepToSpawn.getEnergyRequired() <= this.room.energyAvailable &&
             (nextCreepToSpawn.getEnergyRequired() + 100 < this.room.energyAvailable ||
                 this.room.energyAvailable / this.room.energyCapacityAvailable > nextCreepToSpawn.minPercentCapacity)) {
