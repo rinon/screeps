@@ -1,3 +1,4 @@
+import {CreepSpawnData} from "../../creeps/creep-spawn-data";
 
 const spawnNextCreep = function() {
     if (this.spawning) {
@@ -5,7 +6,7 @@ const spawnNextCreep = function() {
         return;
     }
 
-    let nextCreepToSpawn = this.room.getPlanner();
+    let nextCreepToSpawn: CreepSpawnData = this.room.getPlanner().getNextCreepToSpawn();
     if (nextCreepToSpawn && nextCreepToSpawn.options &&
         nextCreepToSpawn.options['memory'] && nextCreepToSpawn.options['memory']['role']) {
         nextCreepToSpawn.options['memory']['homeRoom'] = this.room.name;
