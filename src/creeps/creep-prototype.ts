@@ -13,6 +13,7 @@ import {TravelingAction} from "./actions/traveling";
 import {AttackAction} from "./actions/attack";
 import {WaitAction} from "./actions/wait";
 import {MoveAction} from "./actions/move";
+import {IdleAction} from "./actions/idle";
 
 
 const moveToTarget = function() {
@@ -42,6 +43,31 @@ const moveToTarget = function() {
         } else {
             this.memory['prevPos'] = this.pos;
         }
+    }
+};
+
+const goGetEnergy = function() {
+    const closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+            return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
+                s.structureType === STRUCTURE_LINK) &&
+                s['store'].energy > 0;
+        }});
+    if (closestContainer != null) {
+        WithdrawAction.setAction(this, closestContainer, RESOURCE_ENERGY);
+    } else {
+        MineEnergyAction.setAction(this);
+    }
+};
+
+const deliverEnergyToSpawner = function() {
+    let spawnerContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+            return (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) &&
+                s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+        }});
+    if (spawnerContainer) {
+        TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
+    } else {
+        IdleAction.setAction(this);
     }
 };
 
@@ -103,6 +129,7 @@ const runAction = function() {
         case WaitAction.KEY:
             WaitAction.run(this);
             break;
+        case IdleAction.KEY:
         default:
             this.setNextAction();
             break;
@@ -112,6 +139,8 @@ const runAction = function() {
 declare global {
     interface Creep {
         moveToTarget();
+        goGetEnergy();
+        deliverEnergyToSpawner();
         setNextAction();
         runAction();
         init: boolean;
@@ -122,6 +151,8 @@ export class CreepPrototype {
     static init() {
         if (!Creep['init']) {
             Creep.prototype.moveToTarget = moveToTarget;
+            Creep.prototype.goGetEnergy = goGetEnergy;
+            Creep.prototype.deliverEnergyToSpawner = deliverEnergyToSpawner;
             Creep.prototype.setNextAction = setNextAction;
             Creep.prototype.runAction = runAction;
             Creep.prototype.init = true;
