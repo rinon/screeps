@@ -1,5 +1,7 @@
 import * as _ from "lodash";
 import { InitPlanner } from "./planners/init-planner";
+import {ConstructionSiteData} from "../structures/construction-site-data";
+import {TerrainUtil} from "../terrain/terrain-util";
 
 function getNeighbors(source: Source): Array<RoomPosition> {
     let neighbors: Array<RoomPosition> = new Array();
@@ -65,8 +67,67 @@ const findNextEnergySource = function(creep: Creep) {
     }
 }
 
+const getPendingConstructionSites = function(): Array<ConstructionSiteData> {
+    let constructionSites:Array<ConstructionSiteData> = [];
+    let controllerLevel = this.controller ? this.controller.level : 0;
+    for (let i = 0; i <= controllerLevel; i++) {
+        if (this.memory['sites'][i]) {
+            _.forEach(this.memory['sites'][i], (structureType:StructureConstant, key:string) => {
+                let roomPosition = new RoomPosition(+key.split(":")[0], +key.split(":")[1], this.name);
+                if (TerrainUtil.isSpotOpen(roomPosition, structureType)) {
+                    constructionSites.push(new ConstructionSiteData(roomPosition, structureType));
+                }
+            });
+        }
+    }
+    if (controllerLevel > 1) {
+        _.forEach(this.memory['sites2'], (structureType:StructureConstant, key:string) => {
+            let roomPosition = new RoomPosition(+key.split(":")[0], +key.split(":")[1], this.name);
+            if (TerrainUtil.canPlaceRampart(roomPosition)) {
+                constructionSites.push(new ConstructionSiteData(roomPosition, structureType));
+            }
+        });
+    }
+    return constructionSites;
+};
+
+const planAllConstructionSites = function() {
+    initSitesMemory();
+
+    // TODO plan extensions
+    // TODO plan roads
+    // TODO plan towers
+    planExtractors();
+};
+
+const planExtractors = function() {
+    if (this.memory['planning'][STRUCTURE_EXTRACTOR]) {
+        return false;
+    }
+    let minerals: Array<Mineral> = this.find(FIND_MINERALS);
+    for (const mineral of minerals) {
+        this.memory['sites'][6][mineral.pos.x + ":" + mineral.pos.y] = STRUCTURE_EXTRACTOR;
+    }
+    this.memory['planning'][STRUCTURE_EXTRACTOR] = true;
+    return true;
+};
+
+const initSitesMemory = function() {
+    if (!this.memory['sites']) {
+        this.memory['sites'] = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}};
+    }
+    if (!this.memory['sites2']) {
+        this.memory['sites2'] = {};
+    }
+    if (!this.memory['planning']) {
+        this.memory['planning'] = {};
+    }
+};
+
 declare global {
     interface Room {
+        planAllConstructionSites();
+        getPendingConstructionSites(): Array<ConstructionSiteData>
         getPlanner();
         findNextEnergySource(creep: Creep): Source;
     }
@@ -74,6 +135,8 @@ declare global {
 
 export class RoomPrototype {
     static init() {
+        Room.prototype.planAllConstructionSites = planAllConstructionSites;
+        Room.prototype.getPendingConstructionSites = getPendingConstructionSites;
         Room.prototype.findNextEnergySource = findNextEnergySource;
         Room.prototype.getPlanner = getPlanner;
     }
