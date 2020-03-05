@@ -30,6 +30,7 @@ export class InitPlanner implements PlannerInterface {
                     delete creep.memory['action'];
                     delete creep.memory['target'];
                     transportReassigned = true;
+                    this.room.creepCountArray = null;
                 }
             });
         } else if (this.room.getNumberOfCreepsByRole(Transport.KEY) > 0) {
