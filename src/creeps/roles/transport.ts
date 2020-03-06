@@ -1,9 +1,10 @@
 import {WithdrawAction} from "../actions/withdraw";
 import {MineEnergyAction} from "../actions/mine-energy";
 import {TransferAction} from "../actions/transfer";
+import {CreepRoleEnum} from "./creep-role-enum";
 
 export class Transport {
-    static KEY = 'transport';
+    static KEY: CreepRoleEnum = CreepRoleEnum.TRANSPORT;
 
     static setAction(creep: Creep) {
         switch (creep.memory['action']) {

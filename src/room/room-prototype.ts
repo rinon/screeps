@@ -1,31 +1,9 @@
 import * as _ from "lodash";
 import { InitPlanner } from "./planners/init-planner";
-import {PlannerInterface} from "./planners/planner-interface";
+import {RoomPlannerInterface} from "./planners/room-planner-interface";
+import {CreepRoleEnum} from "../creeps/roles/creep-role-enum";
 
-function getNeighbors(source: Source): Array<RoomPosition> {
-    let neighbors: Array<RoomPosition> = new Array();
-    if (source.pos.y > 0) {
-        if (source.pos.x > 0)
-            neighbors.push(new RoomPosition(source.pos.x - 1, source.pos.y - 1, source.room.name));
-        neighbors.push(new RoomPosition(source.pos.x, source.pos.y - 1, source.room.name));
-        if (source.pos.x < 49)
-            neighbors.push(new RoomPosition(source.pos.x + 1, source.pos.y - 1, source.room.name));
-    }
-    if (source.pos.x > 0)
-        neighbors.push(new RoomPosition(source.pos.x - 1, source.pos.y, source.room.name));
-    if (source.pos.x < 49)
-        neighbors.push(new RoomPosition(source.pos.x + 1, source.pos.y, source.room.name));
-    if (source.pos.y < 49) {
-        if (source.pos.x > 0)
-            neighbors.push(new RoomPosition(source.pos.x - 1, source.pos.y + 1, source.room.name));
-        neighbors.push(new RoomPosition(source.pos.x, source.pos.y + 1, source.room.name));
-        if (source.pos.x < 49)
-            neighbors.push(new RoomPosition(source.pos.x + 1, source.pos.y + 1, source.room.name));
-    }
-    return neighbors;
-}
-
-const getPlanner = function(): PlannerInterface {
+const getPlanner = function(): RoomPlannerInterface {
     // TODO write ways to determine what planner to send
     return new InitPlanner(this);
 };
@@ -43,21 +21,13 @@ const findNextEnergySource = function(creep: Creep) {
     });
 
     let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), [function(source: Source) {
-        // This might need to be faster?
-        return this.findPath(creep.pos, source).length;
+        return creep.pos.getRangeTo(source.pos);
     }]);
     for (const source of sources) {
         if (!assignments[source.id]) {
             assignments[source.id] = [creep.id];
         } else {
-            let terrain: RoomTerrain = this.getTerrain();
-            let spaces: number = 0;
-            // TODO: put on Source prototype
-            getNeighbors(source).forEach(function(pos: RoomPosition) {
-                if (terrain.get(pos.x, pos.y) == 0) {
-                    spaces += 1;
-                }
-            });
+            let spaces: number = this.getNumberOfMiningSpacesAtSource(source.id);
             if (assignments[source.id].length < spaces) {
                 assignments[source.id].push(creep.id);
                 return source;
@@ -66,29 +36,34 @@ const findNextEnergySource = function(creep: Creep) {
     }
 };
 
-const getNumberOfMiningSpaces = function() {
-    if (!this.memory['sources'] || !this.memory['sources']['spaces']) {
-        this.findNumberOfSourcesAndSpaces();
-    }
-    return this.memory['sources']['spaces'];
+const getNumberOfMiningSpacesAtSource = function(sourceId: Id<Source>) {
+    return this.findNumberOfSourcesAndSpaces()[sourceId];
+};
+
+const getTotalNumberOfMiningSpaces = function() {
+    return this.findNumberOfSourcesAndSpaces()['spaces'];
 };
 
 const getNumberOfSources = function() {
-    if (!this.memory['sources'] || !this.memory['sources']['count']) {
-        this.findNumberOfSourcesAndSpaces();
-    }
-    return this.memory['sources']['count'];
+    return this.findNumberOfSourcesAndSpaces()['count'];
 };
 
 const findNumberOfSourcesAndSpaces = function() {
+    if (this.memory['sources']) {
+        return this.memory['sources'];
+    }
     let numberSources = 0;
     let numberSpaces = 0;
+    let sourceSpacesMap = {};
     _.forEach(this.find(FIND_SOURCES), (source: Source) => {
+        let spacesAtThisSource = 0;
         numberSources++;
         const availablePositions = {};
         for (let x = source.pos.x-1; x < source.pos.x + 1; x++) {
             for (let y = source.pos.y-1; y < source.pos.y + 1; y++) {
-                availablePositions[x + ":" + y] = true;
+                if (!(x < 0 || x > 49 || y < 0 || x > 49)) {
+                    availablePositions[x + ":" + y] = true;
+                }
             }
         }
         _.forEach(this.lookAtArea(source.pos.y-1, source.pos.x-1, source.pos.y+1, source.pos.x+1, true),
@@ -102,40 +77,82 @@ const findNumberOfSourcesAndSpaces = function() {
                 }
             });
         for (const key in availablePositions) {
+            spacesAtThisSource++;
             numberSpaces++;
         }
+        sourceSpacesMap[source.id] = spacesAtThisSource;
     });
     this.memory['sources'] = {
         count: numberSources,
-        spaces: numberSpaces
-    }
+        spaces: numberSpaces,
+        sources: sourceSpacesMap
+    };
+    return this.memory['sources'];
 };
 
-const getNumberOfCreepsByRole = function(role: string): number {
+const getNumberOfCreepsByRole = function(role: CreepRoleEnum): number {
     if (this.creepCountArray === null) {
-        this.creepCountArray = [];
+        this.creepCountArray = new Map();
         _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
             if (creep.memory && creep.memory['role']) {
-                const currentRole = creep.memory['role'];
-                if (this.creepCountArray[currentRole]) {
-                    this.creepCountArray[currentRole]++;
+                const currentRole: CreepRoleEnum = creep.memory['role'];
+                if (this.creepCountArray.has(currentRole)) {
+                    this.creepCountArray.set(currentRole, this.creepCountArray.get(currentRole) + 1);
                 } else {
-                    this.creepCountArray[currentRole] = 1;
+                    this.creepCountArray.set(currentRole, 1);
                 }
             }
         });
     }
-    return this.creepCountArray[role] ? this.creepCountArray[role] : 0;
+    return this.creepCountArray.has(role) ? this.creepCountArray.get(role) : 0;
 };
+
+const reassignAllCreeps = function(newRole: CreepRoleEnum, filter: Function) {
+    let creepReassigned = false;
+    _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
+        if (!creepReassigned && filter(creep)) {
+            const oldRole = creep.memory['role'];
+            creep.memory['role'] = newRole;
+            delete creep.memory['action'];
+            delete creep.memory['target'];
+            creepReassigned = true;
+            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
+        }
+    });
+};
+
+const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
+    _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
+        if (filter(creep)) {
+            const oldRole = creep.memory['role'];
+            creep.memory['role'] = newRole;
+            delete creep.memory['action'];
+            delete creep.memory['target'];
+            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
+        }
+    });
+};
+
+function incrementAndDecrement(map: Map<CreepRoleEnum, number>, increment: CreepRoleEnum, decrement: CreepRoleEnum) {
+    map.set(decrement, map.get(decrement) - 1);
+    if (map.has(increment)) {
+        map.set(increment, map.get(increment) + 1);
+    } else {
+        map.set(increment, 1);
+    }
+}
 
 declare global {
     interface Room {
-        planner: PlannerInterface;
-        creepCountArray: Array<number>;
-        getPlanner(): PlannerInterface;
+        reassignAllCreeps(newRole: CreepRoleEnum, filter: Function);
+        reassignSingleCreep(newRole: CreepRoleEnum, filter: Function);
+        planner: RoomPlannerInterface;
+        creepCountArray: Map<CreepRoleEnum, number>;
+        getPlanner(): RoomPlannerInterface;
         getNumberOfCreepsByRole(role: string): number;
         findNextEnergySource(creep: Creep): Source;
-        getNumberOfMiningSpaces(): number;
+        getNumberOfMiningSpacesAtSource(sourceId: Id<Source>): number;
+        getTotalNumberOfMiningSpaces(): number;
         getNumberOfSources(): number;
         findNumberOfSourcesAndSpaces();
     }
@@ -143,11 +160,14 @@ declare global {
 
 export class RoomPrototype {
     static init() {
+        Room.prototype.reassignAllCreeps = reassignAllCreeps;
+        Room.prototype.reassignSingleCreep = reassignSingleCreep;
         Room.prototype.planner = null;
         Room.prototype.creepCountArray = null;
         Room.prototype.getNumberOfCreepsByRole = getNumberOfCreepsByRole;
         Room.prototype.findNextEnergySource = findNextEnergySource;
-        Room.prototype.getNumberOfMiningSpaces = getNumberOfMiningSpaces;
+        Room.prototype.getNumberOfMiningSpacesAtSource = getNumberOfMiningSpacesAtSource;
+        Room.prototype.getTotalNumberOfMiningSpaces = getTotalNumberOfMiningSpaces;
         Room.prototype.getNumberOfSources = getNumberOfSources;
         Room.prototype.getPlanner = getPlanner;
         Room.prototype.findNumberOfSourcesAndSpaces = findNumberOfSourcesAndSpaces;

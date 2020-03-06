@@ -27,7 +27,7 @@ export class CreepSpawnData {
         }
     }
 
-    static getBodyPartValue(bodyPart:BodyPartConstant):number {
+    static getBodyPartPriority(bodyPart:BodyPartConstant):number {
         switch (bodyPart) {
             case RANGED_ATTACK:
                 return 130;
@@ -59,8 +59,8 @@ export class CreepSpawnData {
 
     sortBodyParts(bodyArray:Array<BodyPartConstant>):Array<BodyPartConstant> {
         bodyArray.sort(function(x, y):number {
-            let xValue = CreepSpawnData.getBodyPartValue(x);
-            let yValue = CreepSpawnData.getBodyPartValue(y);
+            let xValue = CreepSpawnData.getBodyPartPriority(x);
+            let yValue = CreepSpawnData.getBodyPartPriority(y);
             if (xValue < yValue) {
                 return -1;
             } else if (xValue > yValue) {

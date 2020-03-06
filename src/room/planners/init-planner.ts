@@ -1,11 +1,11 @@
 import {CreepSpawnData} from "../../creeps/creep-spawn-data";
 import {Upgrader} from "../../creeps/roles/upgrader";
 import {CreepBodyBuilder} from "../../creeps/creep-body-builder";
-import {PlannerInterface} from "./planner-interface";
+import {RoomPlannerInterface} from "./room-planner-interface";
 import {Transport} from "../../creeps/roles/transport";
-import * as _ from "lodash";
+import {CreepRoleEnum} from "../../creeps/roles/creep-role-enum";
 
-export class InitPlanner implements PlannerInterface {
+export class InitPlanner implements RoomPlannerInterface {
     private room: Room;
     private creepsAssigned = false;
 
@@ -13,7 +13,7 @@ export class InitPlanner implements PlannerInterface {
         this.room = room;
     }
 
-    reassignCreeps() {
+    private reassignCreeps() {
         if (this.creepsAssigned) {
             return;
         }
@@ -22,38 +22,26 @@ export class InitPlanner implements PlannerInterface {
                     s.structureType === STRUCTURE_EXTENSION) && s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
             }});
         if (spawnersNeedingEnergy.length > 0) {
-            let transportReassigned = false;
-            _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
-                if (!transportReassigned && creep.memory &&
-                        (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY)) {
-                    creep.memory['role'] = Transport.KEY;
-                    delete creep.memory['action'];
-                    delete creep.memory['target'];
-                    transportReassigned = true;
-                    this.room.creepCountArray = null;
-                }
+            this.room.reassignSingleCreep(CreepRoleEnum.TRANSPORT, (creep: Creep) => {
+                return creep.memory &&
+                    (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY);
             });
-        } else if (this.room.getNumberOfCreepsByRole(Transport.KEY) > 0) {
-            _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
-                if (!creep.memory || (!creep.memory['role'] || creep.memory['role'] === Transport.KEY)) {
-                    creep.memory['role'] = Upgrader.KEY;
-                    delete creep.memory['action'];
-                    delete creep.memory['target'];
-                }
+        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 0) {
+            this.room.reassignAllCreeps(CreepRoleEnum.UPGRADER, (creep: Creep) => {
+                return !creep.memory || (!creep.memory['role'] || creep.memory['role'] === Transport.KEY);
             });
-            this.room.creepCountArray = null;
         }
     }
 
-    getNextCreepToSpawn(): CreepSpawnData {
+    public getNextCreepToSpawn(): CreepSpawnData {
         this.reassignCreeps();
 
-        if (this.room.getNumberOfCreepsByRole(Transport.KEY) < 1) {
+        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) < 1) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 350)),
                 0);
-        } else if (this.room.getNumberOfCreepsByRole(Upgrader.KEY) + 1 < Math.max(2, this.room.getNumberOfMiningSpaces())) {
+        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces())) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
