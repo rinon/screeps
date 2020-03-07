@@ -13,7 +13,6 @@ import {TravelingAction} from "./actions/traveling";
 import {AttackAction} from "./actions/attack";
 import {WaitAction} from "./actions/wait";
 import {MoveAction} from "./actions/move";
-import {IdleAction} from "./actions/idle";
 
 
 const moveToTarget = function() {
@@ -67,7 +66,7 @@ const deliverEnergyToSpawner = function() {
     if (spawnerContainer) {
         TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
     } else {
-        IdleAction.setAction(this);
+        WaitAction.setActionPermenantly(this);
     }
 };
 
@@ -129,7 +128,6 @@ const runAction = function() {
         case WaitAction.KEY:
             WaitAction.run(this);
             break;
-        case IdleAction.KEY:
         default:
             this.setNextAction();
             break;
