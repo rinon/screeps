@@ -1,4 +1,6 @@
 import {CreepSpawnData} from "../../creeps/creep-spawn-data";
+import {Invasion} from "../../war/invasion";
+import {WarController} from "../../war/war-controller";
 
 const spawnNextCreep = function() {
     if (this.spawning) {
@@ -14,7 +16,14 @@ const spawnNextCreep = function() {
         if (nextCreepToSpawn.getEnergyRequired() <= this.room.energyAvailable &&
             (nextCreepToSpawn.getEnergyRequired() + 100 < this.room.energyAvailable ||
                 this.room.energyAvailable / this.room.energyCapacityAvailable > nextCreepToSpawn.minPercentCapacity)) {
-            this.spawnCreep(nextCreepToSpawn.bodyArray, nextCreepToSpawn.name, nextCreepToSpawn.options);
+            const spawnResponse = this.spawnCreep(nextCreepToSpawn.bodyArray, nextCreepToSpawn.name, nextCreepToSpawn.options);
+
+            if (spawnResponse === OK && nextCreepToSpawn.options.memory && nextCreepToSpawn.options.memory['invasion']) {
+                const invasionName = nextCreepToSpawn.options.memory['invasion'];
+                if (WarController.invasions[invasionName]) {
+                    WarController.invasions[invasionName].addSpawningCreep(this.spawning.name);
+                }
+            }
         }
     }
 };
