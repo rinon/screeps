@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { InitPlanner } from "./planners/init-planner";
+import {Invasion} from "../war/invasion";
 
 function getNeighbors(source: Source): Array<RoomPosition> {
     let neighbors: Array<RoomPosition> = new Array();
@@ -65,8 +66,21 @@ const findNextEnergySource = function(creep: Creep) {
     }
 }
 
+let invasion: Invasion = null;
+
+const getInvasion = function(): Invasion {
+    if (this.invasion !== null) {
+        return this.invasion;
+    }
+    const invadingCreeps = this.find(FIND_HOSTILE_CREEPS);
+    this.invasion = new Invasion(this.name, invadingCreeps);
+    return invasion;
+};
+
 declare global {
     interface Room {
+        invasion: Invasion;
+        getInvasion(): Invasion;
         getPlanner();
         findNextEnergySource(creep: Creep): Source;
     }
@@ -74,6 +88,8 @@ declare global {
 
 export class RoomPrototype {
     static init() {
+        Room.prototype.invasion = invasion;
+        Room.prototype.getInvasion = getInvasion;
         Room.prototype.findNextEnergySource = findNextEnergySource;
         Room.prototype.getPlanner = getPlanner;
     }
