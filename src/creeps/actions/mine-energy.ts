@@ -47,11 +47,10 @@ export class MineEnergyAction {
 
     static setAction(creep: Creep) {
         creep.memory['action'] = this.KEY;
+        delete creep.memory['target'];
         let source: Source = creep.room.findNextEnergySource(creep);
         if (source) {
             creep.memory['target'] = source.id;
-        } else {
-            delete creep.memory['target'];
         }
         creep.say('⚡ mine');
         // creep.say('🔄 harvest');
