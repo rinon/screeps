@@ -10,7 +10,7 @@ const spawnNextCreep = function() {
     if (nextCreepToSpawn && nextCreepToSpawn.options &&
         nextCreepToSpawn.options['memory'] && nextCreepToSpawn.options['memory']['role']) {
         nextCreepToSpawn.options['memory']['homeRoom'] = this.room.name;
-        // this.room.displayMessage(this.pos, nextCreepToSpawn.options['memory']['role']);
+        this.room.visual.text(nextCreepToSpawn.options['memory']['role'], this.pos.x+1, this.pos.y, {align: 'left'});
         if (nextCreepToSpawn.getEnergyRequired() <= this.room.energyAvailable &&
             (nextCreepToSpawn.getEnergyRequired() + 100 < this.room.energyAvailable ||
                 this.room.energyAvailable / this.room.energyCapacityAvailable > nextCreepToSpawn.minPercentCapacity)) {

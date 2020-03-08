@@ -36,7 +36,7 @@ export class InitPlanner implements RoomPlannerInterface {
     public getNextCreepToSpawn(): CreepSpawnData {
         this.reassignCreeps();
 
-        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) < 1) {
+        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) < 1 && this.room.energyAvailable < 300) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 350)),
