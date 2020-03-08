@@ -109,10 +109,10 @@ const getNumberOfCreepsByRole = function(role: CreepRoleEnum): number {
 };
 
 const reassignAllCreeps = function(newRole: CreepRoleEnum, filter: Function) {
-    let creepReassigned = false;
-    if (!this.creepCountArray) {
-        this.creepCountArray = new Map();
+    if (this.creepCountArray == null) {
+        this.getNumberOfCreepsByRole(newRole);
     }
+    let creepReassigned = false;
     _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
         if (!creepReassigned && filter(creep)) {
             const oldRole = creep.memory['role'];
@@ -126,8 +126,8 @@ const reassignAllCreeps = function(newRole: CreepRoleEnum, filter: Function) {
 };
 
 const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
-    if (!this.creepCountArray) {
-        this.creepCountArray = new Map();
+    if (this.creepCountArray == null) {
+        this.getNumberOfCreepsByRole(newRole);
     }
     _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
         if (filter(creep)) {
