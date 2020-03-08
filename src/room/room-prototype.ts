@@ -27,6 +27,7 @@ const findNextEnergySource = function(creep: Creep) {
     for (const source of sources) {
         if (!assignments[source.id]) {
             assignments[source.id] = [creep.id];
+            return source;
         } else {
             let spaces: number = this.getNumberOfMiningSpacesAtSource(source.id);
             if (assignments[source.id].length < spaces) {
@@ -38,7 +39,7 @@ const findNextEnergySource = function(creep: Creep) {
 };
 
 const getNumberOfMiningSpacesAtSource = function(sourceId: Id<Source>) {
-    return this.findNumberOfSourcesAndSpaces()[sourceId];
+    return this.findNumberOfSourcesAndSpaces()['sources'][sourceId];
 };
 
 const getTotalNumberOfMiningSpaces = function() {
