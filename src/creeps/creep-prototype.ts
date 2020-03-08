@@ -13,6 +13,7 @@ import {TravelingAction} from "./actions/traveling";
 import {AttackAction} from "./actions/attack";
 import {WaitAction} from "./actions/wait";
 import {MoveAction} from "./actions/move";
+import {Transport} from "./roles/transport";
 
 
 const moveToTarget = function() {
@@ -77,6 +78,9 @@ const setNextAction = function() {
         return;
     }
     switch (this.memory['role']) {
+        case Transport.KEY:
+            Transport.setAction(this);
+            break;
         case Upgrader.KEY:
         default:
             Upgrader.setAction(this);
