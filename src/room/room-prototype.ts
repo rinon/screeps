@@ -13,15 +13,16 @@ const findNextEnergySource = function(creep: Creep) {
         this.memory['source_assignments'] = {};
     }
     let assignments: Object = this.memory['source_assignments'];
-    _.forEach(assignments, function(assignment: Object, source: String) {
-        assignment = _.filter(assignment, function(creep_id: string) {
+    for (const source_id in assignments) {
+        assignments[source_id] = _.filter(assignments[source_id], function(creep_id: string) {
             let creep: Creep = Game.creeps[creep_id];
-            return creep ? creep.memory['target'] == source : false;
+            return creep ? creep.memory['target'] == source_id : false;
         });
-    });
+    }
 
     let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), [function(source: Source) {
-        return creep.pos.getRangeTo(source.pos);
+        // This might need to be faster?
+        return this.findPath(creep.pos, source.pos).length;
     }]);
     for (const source of sources) {
         if (!assignments[source.id]) {
