@@ -16,10 +16,12 @@ const findNextEnergySource = function(creep: Creep) {
     for (const source of sources) {
         const currentlyAssigned: number = this.find(FIND_MY_CREEPS, {
             filter: (creep: Creep) => {
-                creep.memory['target'] === source.id
+                console.log(creep.memory['target'], source.id);
+                return creep.memory['target'] === source.id;
             }
         }).length;
         let spaces: number = this.getNumberOfMiningSpacesAtSource(source.id);
+        console.log("Assigned to this source: ", currentlyAssigned);
         if (currentlyAssigned < spaces) {
             return source;
         }
