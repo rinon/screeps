@@ -21,12 +21,12 @@ export class InitPlanner implements RoomPlannerInterface {
                 return s['store'] && (s.structureType === STRUCTURE_SPAWN ||
                     s.structureType === STRUCTURE_EXTENSION) && s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
             }});
-        if (spawnersNeedingEnergy.length > 0) {
+        if (spawnersNeedingEnergy.length > 0 && this.room.getNumberOfCreepsByRole(Transport.KEY) < 1) {
             this.room.reassignSingleCreep(CreepRoleEnum.TRANSPORT, (creep: Creep) => {
                 return creep.memory &&
                     (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY);
             });
-        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 0) {
+        } else if (spawnersNeedingEnergy.length < 1 && this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 0) {
             this.room.reassignAllCreeps(CreepRoleEnum.UPGRADER, (creep: Creep) => {
                 return !creep.memory || (!creep.memory['role'] || creep.memory['role'] === Transport.KEY);
             });
