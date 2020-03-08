@@ -45,6 +45,31 @@ const moveToTarget = function() {
     }
 };
 
+const goGetEnergy = function() {
+    const closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+            return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
+                s.structureType === STRUCTURE_LINK) &&
+                s['store'].energy > 0;
+        }});
+    if (closestContainer != null) {
+        WithdrawAction.setAction(this, closestContainer, RESOURCE_ENERGY);
+    } else {
+        MineEnergyAction.setAction(this);
+    }
+};
+
+const deliverEnergyToSpawner = function() {
+    let spawnerContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+            return (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) &&
+                s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+        }});
+    if (spawnerContainer) {
+        TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
+    } else {
+        WaitAction.setActionPermenantly(this);
+    }
+};
+
 const setNextAction = function() {
     if (!this.memory['actionSwitched']) {
         this.memory['actionSwitched'] = true;
@@ -112,6 +137,8 @@ const runAction = function() {
 declare global {
     interface Creep {
         moveToTarget();
+        goGetEnergy();
+        deliverEnergyToSpawner();
         setNextAction();
         runAction();
         init: boolean;
@@ -122,6 +149,8 @@ export class CreepPrototype {
     static init() {
         if (!Creep['init']) {
             Creep.prototype.moveToTarget = moveToTarget;
+            Creep.prototype.goGetEnergy = goGetEnergy;
+            Creep.prototype.deliverEnergyToSpawner = deliverEnergyToSpawner;
             Creep.prototype.setNextAction = setNextAction;
             Creep.prototype.runAction = runAction;
             Creep.prototype.init = true;

@@ -8,17 +8,25 @@ export class WaitAction {
                 creep.room.controller.my)) {
             delete creep.memory['wait'];
             creep.setNextAction();
-            return;
+        } else if (creep.memory['wait']) {
+            creep.setNextAction();
         }
     }
 
     static setActionUntilReserved(creep:Creep) {
         creep.memory['action'] = 'wait';
         creep.memory['wait'] = WaitAction.RESERVED;
-        creep.say('Zz sleep');
+        creep.say('🕙 reserved');
     }
 
-    static setAction(creep:Creep) {
+    static setActionUntilNextTick(creep: Creep) {
+        creep.memory['action'] = 'wait';
+        creep.memory['wait'] = true;
+        creep.say('🕙 idle');
+    }
+
+    static setActionPermenantly(creep: Creep) {
+        delete creep.memory['wait'];
         creep.memory['action'] = 'wait';
         creep.say('Zz sleep');
     }
