@@ -110,26 +110,32 @@ const getNumberOfCreepsByRole = function(role: CreepRoleEnum): number {
 
 const reassignAllCreeps = function(newRole: CreepRoleEnum, filter: Function) {
     let creepReassigned = false;
-    _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
+    if (!this.creepCountArray) {
+        this.creepCountArray = new Map();
+    }
+    _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
         if (!creepReassigned && filter(creep)) {
             const oldRole = creep.memory['role'];
             creep.memory['role'] = newRole;
             delete creep.memory['action'];
             delete creep.memory['target'];
             creepReassigned = true;
-            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
+            incrementAndDecrement(this.creepCountArray, newRole, oldRole);
         }
     });
 };
 
 const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
-    _.forEach(this.room.find(FIND_MY_CREEPS), (creep: Creep) => {
+    if (!this.creepCountArray) {
+        this.creepCountArray = new Map();
+    }
+    _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
         if (filter(creep)) {
             const oldRole = creep.memory['role'];
             creep.memory['role'] = newRole;
             delete creep.memory['action'];
             delete creep.memory['target'];
-            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
+            incrementAndDecrement(this.creepCountArray, newRole, oldRole);
         }
     });
 };
