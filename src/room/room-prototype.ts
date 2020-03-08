@@ -38,7 +38,7 @@ const findNextEnergySource = function(creep: Creep) {
 };
 
 const getNumberOfMiningSpacesAtSource = function(sourceId: Id<Source>) {
-    return this.findNumberOfSourcesAndSpaces()[sourceId];
+    return this.findNumberOfSourcesAndSpaces()['sources'][sourceId];
 };
 
 const getTotalNumberOfMiningSpaces = function() {
@@ -136,7 +136,7 @@ const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
             creep.memory['role'] = newRole;
             delete creep.memory['action'];
             delete creep.memory['target'];
-            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
+            incrementAndDecrement(this.creepCountArray, newRole, oldRole);
         }
     });
 };
