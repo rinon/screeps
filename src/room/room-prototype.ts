@@ -9,32 +9,23 @@ const getPlanner = function(): RoomPlannerInterface {
 };
 
 const findNextEnergySource = function(creep: Creep) {
-    if (!this.memory['source_assignments']) {
-        this.memory['source_assignments'] = {};
-    }
-    let assignments: Object = this.memory['source_assignments'];
-    for (const source_id in assignments) {
-        assignments[source_id] = _.filter(assignments[source_id], function(creep_id: string) {
-            let creep: Creep = Game.creeps[creep_id];
-            return creep ? creep.memory['target'] == source_id : false;
-        });
-    }
-
     let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), [function(source: Source) {
         // This might need to be faster?
         return this.findPath(creep.pos, source.pos).length;
     }]);
     for (const source of sources) {
-        if (!assignments[source.id]) {
-            assignments[source.id] = [creep.id];
-            return source;
-        } else {
-            let spaces: number = this.getNumberOfMiningSpacesAtSource(source.id);
-            if (assignments[source.id].length < spaces) {
-                assignments[source.id].push(creep.id);
-                return source;
+        const currentlyAssigned: number = this.find(FIND_MY_CREEPS, {
+            filter: (creep: Creep) => {
+                creep.memory['target'] === source.id
             }
+        }).length;
+        let spaces: number = this.getNumberOfMiningSpacesAtSource(source.id);
+        if (currentlyAssigned < spaces) {
+            return source;
         }
+    }
+    if (sources.length > 0) {
+        return sources[0];
     }
 };
 
