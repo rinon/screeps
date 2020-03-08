@@ -60,8 +60,8 @@ const findNumberOfSourcesAndSpaces = function() {
         let spacesAtThisSource = 0;
         numberSources++;
         const availablePositions = {};
-        for (let x = source.pos.x-1; x < source.pos.x + 1; x++) {
-            for (let y = source.pos.y-1; y < source.pos.y + 1; y++) {
+        for (let x = source.pos.x-1; x < source.pos.x + 2; x++) {
+            for (let y = source.pos.y-1; y < source.pos.y + 2; y++) {
                 if (!(x < 0 || x > 49 || y < 0 || x > 49)) {
                     availablePositions[x + ":" + y] = true;
                 }
@@ -73,7 +73,8 @@ const findNumberOfSourcesAndSpaces = function() {
                         lookupObject.structure.structureType !== STRUCTURE_CONTAINER &&
                         lookupObject.structure.structureType !== STRUCTURE_RAMPART) {
                     delete availablePositions[lookupObject.x + ":" + lookupObject.y];
-                } else if (lookupObject.type === 'terrain' && lookupObject.terrain !== 'swamp') {
+                } else if (lookupObject.type === 'terrain' && lookupObject.terrain !== 'swamp' &&
+                        lookupObject.terrain !== 'plain') {
                     delete availablePositions[lookupObject.x + ":" + lookupObject.y];
                 }
             });
@@ -135,7 +136,7 @@ const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
             creep.memory['role'] = newRole;
             delete creep.memory['action'];
             delete creep.memory['target'];
-            incrementAndDecrement(this.creepCountArray, newRole, oldRole);
+            incrementAndDecrement(this.room.creepCountArray, newRole, oldRole);
         }
     });
 };
