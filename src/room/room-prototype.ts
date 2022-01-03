@@ -9,10 +9,10 @@ const getPlanner = function(): RoomPlannerInterface {
 };
 
 const findNextEnergySource = function(creep: Creep) {
-    let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), [function(source: Source) {
+    let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), function(source: Source) {
         // This might need to be faster?
-        return this.findPath(creep.pos, source.pos).length;
-    }]);
+        return creep.room.findPath(creep.pos, source.pos).length;
+    });
     for (const source of sources) {
         const currentlyAssigned: number = this.find(FIND_MY_CREEPS, {
             filter: (creep: Creep) => {
