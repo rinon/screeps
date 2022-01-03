@@ -16,7 +16,7 @@ import {MoveAction} from "./actions/move";
 import {Transport} from "./roles/transport";
 import {Builder} from "./roles/builder";
 import {Miner} from "./roles/miner";
-import _ from "lodash";
+import * as _ from "lodash";
 
 
 const moveToTarget = function() {
