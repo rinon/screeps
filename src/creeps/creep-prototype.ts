@@ -61,6 +61,14 @@ const goGetEnergy = function() {
 };
 
 const deliverEnergyToSpawner = function() {
+    let towerContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+            return (s.structureType === STRUCTURE_TOWER) &&
+                s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+        }});
+    if (towerContainer) {
+        TransferAction.setAction(this, towerContainer, RESOURCE_ENERGY);
+        return;
+    }
     let spawnerContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
             return (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) &&
                 s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
