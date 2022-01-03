@@ -15,6 +15,7 @@ import {WaitAction} from "./actions/wait";
 import {MoveAction} from "./actions/move";
 import {Transport} from "./roles/transport";
 import {Builder} from "./roles/builder";
+import {Miner} from "./roles/miner";
 
 
 const moveToTarget = function() {
@@ -92,6 +93,9 @@ const setNextAction = function() {
             break;
         case Builder.KEY:
             Builder.setAction(this);
+            break;
+        case Miner.KEY:
+            Miner.setAction(this);
             break;
         case Upgrader.KEY:
         default:
