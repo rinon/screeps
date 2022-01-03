@@ -94,26 +94,32 @@ export class InitPlanner implements RoomPlannerInterface {
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 0);
-        } else if (miners < Math.max(2, this.room.getNumberOfSources()) || minerNearDeath) {
+        } else if (miners < 1) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
-                0.5);
+                0);
+        } else if (miners < Math.max(2, this.room.getNumberOfSources()) || (minerNearDeath
+                && miners <= Math.max(2, this.room.getNumberOfSources()))) {
+            return CreepSpawnData.build(
+                Miner.KEY,
+                CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
+                1);
         } else if (transports < 3) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
-                0.2);
+                1);
         } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces())) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
-                0.3);
+                1);
         } else if (builders < 8) {
             return CreepSpawnData.build(
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
-                0.4);
+                1);
         }
         return null;
     }
