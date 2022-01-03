@@ -1,5 +1,6 @@
 
 export enum CreepRoleEnum {
     UPGRADER = 'upgrader',
-    TRANSPORT = 'transport'
+    TRANSPORT = 'transport',
+    BUILDER = 'builder'
 }

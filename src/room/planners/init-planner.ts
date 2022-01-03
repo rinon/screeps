@@ -13,7 +13,7 @@ export class InitPlanner implements RoomPlannerInterface {
         this.room = room;
     }
 
-    private reassignCreeps() {
+    public reassignCreeps() {
         if (this.creepsAssigned) {
             return;
         }
@@ -31,11 +31,18 @@ export class InitPlanner implements RoomPlannerInterface {
                 return !creep.memory || (!creep.memory['role'] || creep.memory['role'] === Transport.KEY);
             });
         }
+        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > 1 && this.room.find(FIND_CONSTRUCTION_SITES).length > 0 &&
+                this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) < 3) {
+            this.room.reassignSingleCreep(CreepRoleEnum.BUILDER, (creep: Creep) => {
+                return creep.memory && (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY);
+            });
+        }
+        // console.log('Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER));
+        // console.log('Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT));
+        // console.log('Builders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER));
     }
 
     public getNextCreepToSpawn(): CreepSpawnData {
-        this.reassignCreeps();
-
         if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) < 1 && this.room.energyAvailable < 300) {
             return CreepSpawnData.build(
                 Transport.KEY,

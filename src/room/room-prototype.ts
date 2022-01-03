@@ -96,21 +96,26 @@ const findNumberOfSourcesAndSpaces = function() {
 };
 
 const getNumberOfCreepsByRole = function(role: CreepRoleEnum): number {
-    if (this.creepCountArray === null) {
-        this.creepCountArray = new Map();
-        _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
+    this.creepCountArray = initCreepCountArray(this.creepCountArray, this);
+    return this.creepCountArray.has(role) ? this.creepCountArray.get(role) : 0;
+};
+
+function initCreepCountArray(creepCountArray: Map<CreepRoleEnum, number>, room: Room): Map<CreepRoleEnum, number> {
+    if (creepCountArray === null) {
+        creepCountArray = new Map();
+        _.forEach(room.find(FIND_MY_CREEPS), (creep: Creep) => {
             if (creep.memory && creep.memory['role']) {
                 const currentRole: CreepRoleEnum = creep.memory['role'];
-                if (this.creepCountArray.has(currentRole)) {
-                    this.creepCountArray.set(currentRole, this.creepCountArray.get(currentRole) + 1);
+                if (creepCountArray.has(currentRole)) {
+                    creepCountArray.set(currentRole, creepCountArray.get(currentRole) + 1);
                 } else {
-                    this.creepCountArray.set(currentRole, 1);
+                    creepCountArray.set(currentRole, 1);
                 }
             }
         });
     }
-    return this.creepCountArray.has(role) ? this.creepCountArray.get(role) : 0;
-};
+    return creepCountArray;
+}
 
 const reassignAllCreeps = function(newRole: CreepRoleEnum, filter: Function) {
     if (this.creepCountArray == null) {
@@ -734,6 +739,15 @@ function hasPlannedStructureAt(roomPosition:RoomPosition):boolean {
     return false;
 }
 
+const reassignIdleCreep = function(creep: Creep) {
+    const newRole = CreepRoleEnum.TRANSPORT;
+    const oldRole = creep.memory['role'];
+    creep.memory['role'] = newRole;
+    delete creep.memory['action'];
+    delete creep.memory['target'];
+    incrementAndDecrement(this.creepCountArray, newRole, oldRole);
+}
+
 declare global {
     interface Room {
         reassignAllCreeps(newRole: CreepRoleEnum, filter: Function);
@@ -750,6 +764,7 @@ declare global {
         makeConstructionSites();
         isSpotOpen(pos: RoomPosition): boolean;
         buildMemory();
+        reassignIdleCreep(creep: Creep);
     }
 }
 
@@ -769,5 +784,6 @@ export class RoomPrototype {
         Room.prototype.makeConstructionSites = makeConstructionSites;
         Room.prototype.isSpotOpen = isSpotOpen;
         Room.prototype.buildMemory = buildMemory;
+        Room.prototype.reassignIdleCreep = reassignIdleCreep;
     }
 }
