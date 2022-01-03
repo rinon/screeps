@@ -206,7 +206,7 @@ const makeConstructionSites = function() {
     if (controllerLevel > 1) {
         _.forEach(this.memory['sites2'], (structureType:StructureConstant, key:string) => {
             let roomPosition = new RoomPosition(+key.split(":")[0], +key.split(":")[1], this.name);
-            if (this.canPlaceRampart(roomPosition)) {
+            if (canPlaceRampart(roomPosition)) {
                 constructionSites.push(new ConstructionSiteData(roomPosition, structureType));
             }
         });
