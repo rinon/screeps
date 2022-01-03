@@ -48,7 +48,7 @@ const moveToTarget = function() {
     }
 };
 
-const goGetEnergy = function() {
+const goGetEnergy = function(hasWorkComponent: boolean) {
     const closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
             return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
                 s.structureType === STRUCTURE_LINK) &&
@@ -57,7 +57,11 @@ const goGetEnergy = function() {
     if (closestContainer != null) {
         WithdrawAction.setAction(this, closestContainer, RESOURCE_ENERGY);
     } else {
-        MineEnergyAction.setAction(this);
+        if (hasWorkComponent) {
+            MineEnergyAction.setAction(this);
+        } else {
+            WaitAction.setActionUntilNextTick(this);
+        }
     }
 };
 
@@ -157,7 +161,7 @@ const runAction = function() {
 declare global {
     interface Creep {
         moveToTarget();
-        goGetEnergy();
+        goGetEnergy(hasWorkComponent);
         deliverEnergyToSpawner();
         setNextAction();
         runAction();

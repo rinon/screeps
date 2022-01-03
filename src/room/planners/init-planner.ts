@@ -33,13 +33,13 @@ export class InitPlanner implements RoomPlannerInterface {
         if (upgraders < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        // if (builders > transports && transports < 3) {
-        //     return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
-        // }
+        if (builders > transports && transports < 2) {
+            return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        }
         if (transports > 3 && constructionSites > 0) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRANSPORT, type: 'single'};
         }
-        if (upgraders > 5 && constructionSites > 0) {
+        if (upgraders > Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && constructionSites > 0) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
         return null;
@@ -80,6 +80,9 @@ export class InitPlanner implements RoomPlannerInterface {
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
         const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
         const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
+        const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
+                return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 200;
+            }}).length > 0;
 
         if (transports < 1) {
             return CreepSpawnData.build(
@@ -91,7 +94,7 @@ export class InitPlanner implements RoomPlannerInterface {
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 0);
-        } else if (miners < Math.max(2, this.room.getNumberOfSources())) {
+        } else if (miners < Math.max(2, this.room.getNumberOfSources()) || minerNearDeath) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
@@ -106,7 +109,7 @@ export class InitPlanner implements RoomPlannerInterface {
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 0.3);
-        } else {
+        } else if (builders < 8) {
             return CreepSpawnData.build(
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),

@@ -19,7 +19,7 @@ export class Builder {
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                     this.findNextJob(creep);
                 } else {
-                    creep.goGetEnergy();
+                    creep.goGetEnergy(true);
                 }
                 break;
         }

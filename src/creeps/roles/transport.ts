@@ -10,11 +10,15 @@ export class Transport {
         switch (creep.memory['action']) {
             case WithdrawAction.KEY:
             case MineEnergyAction.KEY:
-                creep.deliverEnergyToSpawner();
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) < 1) {
+                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
+                } else {
+                    creep.deliverEnergyToSpawner();
+                }
                 break;
             case TransferAction.KEY:
             default:
-                creep.goGetEnergy();
+                creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
                 break;
         }
         creep.runAction();
