@@ -26,7 +26,7 @@ export class MineEnergyAction {
             }
         }
         let source: Source = Game.getObjectById(creep.memory['target']);
-        if (!source) {
+        if (!source || source.energy < 1) {
             delete creep.memory['target'];
             creep.setNextAction();
             return;

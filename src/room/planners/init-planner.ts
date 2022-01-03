@@ -78,7 +78,7 @@ export class InitPlanner implements RoomPlannerInterface {
         const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
         const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
         const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
-                return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 200;
+                return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 170;
             }}).length > 0;
 
         if (transports < 1) {
