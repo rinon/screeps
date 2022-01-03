@@ -15,35 +15,60 @@ export class InitPlanner implements RoomPlannerInterface {
         this.room = room;
     }
 
+    public getNextReassignRole() {
+        const transports = this.room.getNumberOfCreepsByRole(Transport.KEY);
+        const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
+        const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
+        // const spawnersNeedingEnergy = this.room.find(FIND_MY_STRUCTURES, {filter: (s:Structure) => {
+        //         return s['store'] && (s.structureType === STRUCTURE_SPAWN ||
+        //             s.structureType === STRUCTURE_EXTENSION) && s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+        //     }});
+        const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
+        if (transports < 1 && builders > 0) {
+            return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        }
+        if (transports < 1 && upgraders > 0) {
+            return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
+        }
+        if (upgraders < 1 && builders > 0) {
+            return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        }
+        if (builders > transports && transports < 3) {
+            return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        }
+        if (transports > 3 && constructionSites > 0) {
+            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRANSPORT, type: 'single'};
+        }
+        if (upgraders > 5 && constructionSites > 0) {
+            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
+        }
+        return null;
+    }
+
     public reassignCreeps() {
         if (this.creepsAssigned) {
             return;
         }
-        const spawnersNeedingEnergy = this.room.find(FIND_MY_STRUCTURES, {filter: (s:Structure) => {
-                return s['store'] && (s.structureType === STRUCTURE_SPAWN ||
-                    s.structureType === STRUCTURE_EXTENSION) && s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
-            }});
-        if (spawnersNeedingEnergy.length > 0 && (this.room.getNumberOfCreepsByRole(Transport.KEY) < 1
-                || (this.room.getNumberOfCreepsByRole(Transport.KEY) < 3 && this.room.getNumberOfCreepsByRole(Upgrader.KEY) > 1))) {
-            this.room.reassignSingleCreep(CreepRoleEnum.TRANSPORT, (creep: Creep) => {
-                return creep.memory &&
-                    (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY);
-            });
-        } else if (spawnersNeedingEnergy.length < 1 && this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 0) {
-            this.room.reassignAllCreeps(CreepRoleEnum.UPGRADER, (creep: Creep) => {
-                return !creep.memory || (!creep.memory['role'] || creep.memory['role'] === Transport.KEY);
-            });
+
+        let i = 0;
+        let nextReassignRole = this.getNextReassignRole();
+        while (i < 2 && nextReassignRole) {
+            i++;
+            if (nextReassignRole.type == 'all') {
+                this.room.reassignAllCreeps(nextReassignRole.newRole, (creep: Creep) => {
+                    return creep.memory &&
+                        (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);
+                });
+            } else {
+                console.log('reassigning ' + nextReassignRole.oldRole + ' to ' + nextReassignRole.newRole);
+                this.room.reassignSingleCreep(nextReassignRole.newRole, (creep: Creep) => {
+                    return creep.memory &&
+                        (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);
+                });
+            }
+            nextReassignRole = this.getNextReassignRole();
         }
-        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > 1 && this.room.find(FIND_CONSTRUCTION_SITES).length > 0 &&
-                this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) < 3) {
-            this.room.reassignSingleCreep(CreepRoleEnum.BUILDER, (creep: Creep) => {
-                return creep.memory && (!creep.memory['role'] || creep.memory['role'] === Upgrader.KEY);
-            });
-        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) > 3 && this.room.find(FIND_CONSTRUCTION_SITES).length < 1) {
-            this.room.reassignSingleCreep(CreepRoleEnum.UPGRADER, (creep: Creep) => {
-                return creep.memory && (!creep.memory['role'] || creep.memory['role'] === Builder.KEY);
-            });
-        }
+        this.creepsAssigned = true;
         console.log('Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) +
             ' Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) +
             ' Miners: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) +

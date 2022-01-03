@@ -77,7 +77,7 @@ const deliverEnergyToSpawner = function() {
     if (spawnerContainer) {
         TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
     } else {
-        WaitAction.setActionPermenantly(this);
+        this.room.reassignIdleCreep(this);
     }
 };
 

@@ -3,6 +3,7 @@ import { InitPlanner } from "./planners/init-planner";
 import {RoomPlannerInterface} from "./planners/room-planner-interface";
 import {CreepRoleEnum} from "../creeps/roles/creep-role-enum";
 import {ConstructionSiteData} from "../structures/construction/construction-site-data";
+import {WaitAction} from "../creeps/actions/wait";
 
 const getPlanner = function(room: Room): RoomPlannerInterface {
     if (room.memory && room.memory['plan']) {
@@ -138,13 +139,15 @@ const reassignSingleCreep = function(newRole: CreepRoleEnum, filter: Function) {
     if (this.creepCountArray == null) {
         this.getNumberOfCreepsByRole(newRole);
     }
+    let reassigned = false;
     _.forEach(this.find(FIND_MY_CREEPS), (creep: Creep) => {
-        if (filter(creep)) {
+        if (!reassigned && filter(creep)) {
             const oldRole = creep.memory['role'];
             creep.memory['role'] = newRole;
             delete creep.memory['action'];
             delete creep.memory['target'];
             incrementAndDecrement(this.creepCountArray, newRole, oldRole);
+            reassigned = true;
         }
     });
 };
@@ -247,19 +250,19 @@ const buildMemory = function() {
 
     if (!this.memory['exits']) {
         this.memory['exits'] = {};
-        this.memory['exits'][FIND_EXIT_TOP] = findExitAndPlanWalls(FIND_EXIT_TOP);
+        this.memory['exits'][FIND_EXIT_TOP] = findExitAndPlanWalls(FIND_EXIT_TOP, this);
         return;
     }
     if (Object.keys(this.memory['exits']).indexOf("" + FIND_EXIT_BOTTOM) === -1) {
-        this.memory['exits'][FIND_EXIT_BOTTOM] = findExitAndPlanWalls(FIND_EXIT_BOTTOM);
+        this.memory['exits'][FIND_EXIT_BOTTOM] = findExitAndPlanWalls(FIND_EXIT_BOTTOM, this);
         return;
     }
     if (Object.keys(this.memory['exits']).indexOf("" + FIND_EXIT_LEFT) === -1) {
-        this.memory['exits'][FIND_EXIT_LEFT] = findExitAndPlanWalls(FIND_EXIT_LEFT);
+        this.memory['exits'][FIND_EXIT_LEFT] = findExitAndPlanWalls(FIND_EXIT_LEFT, this);
         return;
     }
     if (Object.keys(this.memory['exits']).indexOf("" + FIND_EXIT_RIGHT) === -1) {
-        this.memory['exits'][FIND_EXIT_RIGHT] = findExitAndPlanWalls(FIND_EXIT_RIGHT);
+        this.memory['exits'][FIND_EXIT_RIGHT] = findExitAndPlanWalls(FIND_EXIT_RIGHT, this);
         return;
     }
 
@@ -357,15 +360,15 @@ const buildMemory = function() {
     // this.memory['complete'] = true;
 };
 
-function findExitAndPlanWalls(exit:ExitConstant):boolean {
-    if (!this.memory['sites2']) {
-        this.memory['sites2'] = {};
+function findExitAndPlanWalls(exit:ExitConstant, room:Room):boolean {
+    if (!room.memory['sites2']) {
+        room.memory['sites2'] = {};
     }
-    if (!this.memory['sites']) {
-        this.memory['sites'] = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}};
+    if (!room.memory['sites']) {
+        room.memory['sites'] = {0: {}, 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}};
     }
-    if (!this.memory['sites'][2]) {
-        this.memory['sites'][2] = {};
+    if (!room.memory['sites'][2]) {
+        room.memory['sites'][2] = {};
     }
     let exitExists = false;
     let x = -1;
@@ -393,7 +396,7 @@ function findExitAndPlanWalls(exit:ExitConstant):boolean {
         let spotHasNoWall = false;
         if (isX) {
             let newY = y === 2 ? 0 : 49;
-            spotHasNoWall = _.filter(this.lookAt(x, newY), (c:LookAtResultWithPos) => {
+            spotHasNoWall = _.filter(room.lookAt(x, newY), (c:LookAtResultWithPos) => {
                 if (c.type === 'structure' && c.structure.structureType !== STRUCTURE_RAMPART &&
                     c.structure.structureType !== STRUCTURE_WALL) {
                     isRampart = true;
@@ -402,7 +405,7 @@ function findExitAndPlanWalls(exit:ExitConstant):boolean {
             }).length < 1;
         } else {
             let newX = x === 2 ? 0 : 49;
-            spotHasNoWall = _.filter(this.lookAt(newX, y), (c:LookAtResultWithPos) => {
+            spotHasNoWall = _.filter(room.lookAt(newX, y), (c:LookAtResultWithPos) => {
                 if (c.type === 'structure' && c.structure.structureType !== STRUCTURE_RAMPART &&
                     c.structure.structureType !== STRUCTURE_WALL) {
                     isRampart = true;
@@ -413,57 +416,57 @@ function findExitAndPlanWalls(exit:ExitConstant):boolean {
         if (spotHasNoWall) {
             if (exitSize === 0) {
                 if (isX) {
-                    if (this.isSpotOpen(new RoomPosition(x - 1, y, this.name))) {
-                        this.memory['sites'][2][(x - 1) + ":" + y] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
+                        room.memory['sites'][2][(x - 1) + ":" + y] = STRUCTURE_WALL;
                     }
-                    if (this.isSpotOpen(new RoomPosition(x - 1, y, this.name))) {
-                        this.memory['sites'][2][(x - 2) + ":" + y] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
+                        room.memory['sites'][2][(x - 2) + ":" + y] = STRUCTURE_WALL;
                     }
                     let newY = y === 2 ? 1 : 48;
-                    if (this.isSpotOpen(new RoomPosition(x - 1, newY, this.name))) {
-                        this.memory['sites'][2][(x - 2) + ":" + newY] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(x - 1, newY, room.name))) {
+                        room.memory['sites'][2][(x - 2) + ":" + newY] = STRUCTURE_WALL;
                     }
                 } else {
-                    if (this.isSpotOpen(new RoomPosition(x, y - 1, this.name))) {
-                        this.memory['sites'][2][x + ":" + (y - 1)] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
+                        room.memory['sites'][2][x + ":" + (y - 1)] = STRUCTURE_WALL;
                     }
-                    if (this.isSpotOpen(new RoomPosition(x, y - 1, this.name))) {
-                        this.memory['sites'][2][x + ":" + (y - 2)] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
+                        room.memory['sites'][2][x + ":" + (y - 2)] = STRUCTURE_WALL;
                     }
                     let newX = x === 2 ? 1 : 48;
-                    if (this.isSpotOpen(new RoomPosition(newX, y - 1, this.name))) {
-                        this.memory['sites'][2][newX + ":" + (y - 2)] = STRUCTURE_WALL;
+                    if (isSpotOpen(new RoomPosition(newX, y - 1, room.name))) {
+                        room.memory['sites'][2][newX + ":" + (y - 2)] = STRUCTURE_WALL;
                     }
                 }
             }
             exitSize += 1;
             if (isRampart) {
-                this.memory['sites2'][x + ":" + y] = STRUCTURE_RAMPART;
+                room.memory['sites2'][x + ":" + y] = STRUCTURE_RAMPART;
             } else {
-                this.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
+                room.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
             }
         } else if (exitSize) {
             if (isX) {
-                if (this.isSpotOpen(new RoomPosition(x, y, this.name))) {
-                    this.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(x, y, room.name))) {
+                    room.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
                 }
-                if (this.isSpotOpen(new RoomPosition(x + 1, y, this.name))) {
-                    this.memory['sites'][2][(x + 1) + ":" + y] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(x + 1, y, room.name))) {
+                    room.memory['sites'][2][(x + 1) + ":" + y] = STRUCTURE_WALL;
                 }
                 let newY = y === 2 ? 1 : 48;
-                if (this.isSpotOpen(new RoomPosition(x + 1, newY, this.name))) {
-                    this.memory['sites'][2][(x + 1) + ":" + newY] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(x + 1, newY, room.name))) {
+                    room.memory['sites'][2][(x + 1) + ":" + newY] = STRUCTURE_WALL;
                 }
             } else {
-                if (this.isSpotOpen(new RoomPosition(x, y, this.name))) {
-                    this.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(x, y, room.name))) {
+                    room.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
                 }
-                if (this.isSpotOpen(new RoomPosition(x, y + 1, this.name))) {
-                    this.memory['sites'][2][x + ":" + (y + 1)] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(x, y + 1, room.name))) {
+                    room.memory['sites'][2][x + ":" + (y + 1)] = STRUCTURE_WALL;
                 }
                 let newX = x === 2 ? 1 : 48;
-                if (this.isSpotOpen(new RoomPosition(newX, y + 1, this.name))) {
-                    this.memory['sites'][2][newX + ":" + (y + 1)] = STRUCTURE_WALL;
+                if (isSpotOpen(new RoomPosition(newX, y + 1, room.name))) {
+                    room.memory['sites'][2][newX + ":" + (y + 1)] = STRUCTURE_WALL;
                 }
             }
             exits.push(dynamicCoord - Math.round(exitSize / 2));
@@ -475,19 +478,19 @@ function findExitAndPlanWalls(exit:ExitConstant):boolean {
     // TODO check if exit works or if needs to shift
     for (let exitIndex = 0; exitIndex < exits.length; exitIndex++) {
         if (isX) {
-            delete this.memory['sites'][2][(exits[exitIndex] - 1) + ":" + y];
-            delete this.memory['sites'][2][exits[exitIndex] + ":" + y];
-            delete this.memory['sites'][2][(exits[exitIndex] + 1) + ":" + y];
-            this.memory['sites2'][(exits[exitIndex] - 1) + ":" + y] = STRUCTURE_RAMPART;
-            this.memory['sites2'][exits[exitIndex] + ":" + y] = STRUCTURE_RAMPART;
-            this.memory['sites2'][(exits[exitIndex] + 1) + ":" + y] = STRUCTURE_RAMPART;
+            delete room.memory['sites'][2][(exits[exitIndex] - 1) + ":" + y];
+            delete room.memory['sites'][2][exits[exitIndex] + ":" + y];
+            delete room.memory['sites'][2][(exits[exitIndex] + 1) + ":" + y];
+            room.memory['sites2'][(exits[exitIndex] - 1) + ":" + y] = STRUCTURE_RAMPART;
+            room.memory['sites2'][exits[exitIndex] + ":" + y] = STRUCTURE_RAMPART;
+            room.memory['sites2'][(exits[exitIndex] + 1) + ":" + y] = STRUCTURE_RAMPART;
         } else {
-            delete this.memory['sites'][2][x + ":" + (exits[exitIndex] - 1)];
-            delete this.memory['sites'][2][x + ":" + exits[exitIndex]];
-            delete this.memory['sites'][2][x + ":" + (exits[exitIndex] + 1)];
-            this.memory['sites2'][x + ":" + (exits[exitIndex] - 1)] = STRUCTURE_RAMPART;
-            this.memory['sites2'][x + ":" + exits[exitIndex]] = STRUCTURE_RAMPART;
-            this.memory['sites2'][x + ":" + (exits[exitIndex] + 1)] = STRUCTURE_RAMPART;
+            delete room.memory['sites'][2][x + ":" + (exits[exitIndex] - 1)];
+            delete room.memory['sites'][2][x + ":" + exits[exitIndex]];
+            delete room.memory['sites'][2][x + ":" + (exits[exitIndex] + 1)];
+            room.memory['sites2'][x + ":" + (exits[exitIndex] - 1)] = STRUCTURE_RAMPART;
+            room.memory['sites2'][x + ":" + exits[exitIndex]] = STRUCTURE_RAMPART;
+            room.memory['sites2'][x + ":" + (exits[exitIndex] + 1)] = STRUCTURE_RAMPART;
         }
     }
     return exitExists;
@@ -740,8 +743,17 @@ function hasPlannedStructureAt(roomPosition:RoomPosition):boolean {
 }
 
 const reassignIdleCreep = function(creep: Creep) {
-    const newRole = CreepRoleEnum.TRANSPORT;
+    const newRoleObj = getPlanner(this).getNextReassignRole();
+    if (newRoleObj == null) {
+        WaitAction.setActionPermenantly(creep);
+        return;
+    }
+    const newRole = newRoleObj.newRole;
     const oldRole = creep.memory['role'];
+    if (newRole == oldRole) {
+        WaitAction.setActionPermenantly(creep);
+        return;
+    }
     creep.memory['role'] = newRole;
     delete creep.memory['action'];
     delete creep.memory['target'];
