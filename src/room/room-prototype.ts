@@ -4,6 +4,8 @@ import {RoomPlannerInterface} from "./planners/room-planner-interface";
 import {CreepRoleEnum} from "../creeps/roles/creep-role-enum";
 import {ConstructionSiteData} from "../structures/construction/construction-site-data";
 import {WaitAction} from "../creeps/actions/wait";
+import {Transport} from "../creeps/roles/transport";
+import {Miner} from "../creeps/roles/miner";
 
 const getPlanner = function(room: Room): RoomPlannerInterface {
     if (room.memory && room.memory['plan']) {
@@ -743,15 +745,19 @@ function hasPlannedStructureAt(roomPosition:RoomPosition):boolean {
 }
 
 const reassignIdleCreep = function(creep: Creep) {
+    const oldRole = creep.memory['role'];
+    if (oldRole == Transport.KEY || oldRole == Miner.KEY) {
+        WaitAction.setActionUntilNextTick(creep);
+        return;
+    }
     const newRoleObj = getPlanner(this).getNextReassignRole();
     if (newRoleObj == null) {
-        WaitAction.setActionPermenantly(creep);
+        WaitAction.setActionUntilNextTick(creep);
         return;
     }
     const newRole = newRoleObj.newRole;
-    const oldRole = creep.memory['role'];
     if (newRole == oldRole) {
-        WaitAction.setActionPermenantly(creep);
+        WaitAction.setActionUntilNextTick(creep);
         return;
     }
     creep.memory['role'] = newRole;

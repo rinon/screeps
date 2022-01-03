@@ -36,10 +36,7 @@ export class InitPlanner implements RoomPlannerInterface {
         if (builders > transports && transports < 2) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        if (transports > 3 && constructionSites > 0) {
-            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRANSPORT, type: 'single'};
-        }
-        if (upgraders > Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && constructionSites > 0) {
+        if (upgraders / 2 > builders && constructionSites > 0) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
         return null;
@@ -104,13 +101,13 @@ export class InitPlanner implements RoomPlannerInterface {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
-                1);
-        } else if (transports < 3) {
+                transports > 1 ? 1 : 0.5);
+        } else if (transports < 3 || transports < builders + upgraders / 2) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
-                1);
-        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces())) {
+                transports > 1 ? 1 : 0.4);
+        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),

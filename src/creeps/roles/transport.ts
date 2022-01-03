@@ -18,7 +18,11 @@ export class Transport {
                 break;
             case TransferAction.KEY:
             default:
-                creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    creep.deliverEnergyToSpawner();
+                } else {
+                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
+                }
                 break;
         }
         creep.runAction();

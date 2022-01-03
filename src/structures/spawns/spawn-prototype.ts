@@ -13,7 +13,7 @@ const spawnNextCreep = function() {
         this.room.visual.text(nextCreepToSpawn.options['memory']['role'], this.pos.x+1, this.pos.y, {align: 'left'});
         if (nextCreepToSpawn.getEnergyRequired() <= this.room.energyAvailable &&
             (nextCreepToSpawn.getEnergyRequired() + 100 < this.room.energyAvailable ||
-                this.room.energyAvailable / this.room.energyCapacityAvailable > nextCreepToSpawn.minPercentCapacity)) {
+                this.room.energyAvailable / this.room.energyCapacityAvailable >= nextCreepToSpawn.minPercentCapacity)) {
             this.spawnCreep(nextCreepToSpawn.bodyArray, nextCreepToSpawn.name, nextCreepToSpawn.options);
         }
     }

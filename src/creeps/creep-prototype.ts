@@ -16,6 +16,7 @@ import {MoveAction} from "./actions/move";
 import {Transport} from "./roles/transport";
 import {Builder} from "./roles/builder";
 import {Miner} from "./roles/miner";
+import _ from "lodash";
 
 
 const moveToTarget = function() {
@@ -81,7 +82,16 @@ const deliverEnergyToSpawner = function() {
     if (spawnerContainer) {
         TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
     } else {
-        this.room.reassignIdleCreep(this);
+        const mostEmptyContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
+                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE
+                    || s.structureType === STRUCTURE_LINK) &&
+                    s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+            }}), (s:Structure) => { return s['store'].getFreeCapacity(RESOURCE_ENERGY);});
+        if (mostEmptyContainer.length) {
+            TransferAction.setAction(this, mostEmptyContainer[0], RESOURCE_ENERGY);
+        } else {
+            this.room.reassignIdleCreep(this);
+        }
     }
 };
 
