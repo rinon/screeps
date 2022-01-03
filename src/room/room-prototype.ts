@@ -2,11 +2,22 @@ import * as _ from "lodash";
 import { InitPlanner } from "./planners/init-planner";
 import {RoomPlannerInterface} from "./planners/room-planner-interface";
 import {CreepRoleEnum} from "../creeps/roles/creep-role-enum";
+import {ConstructionSiteData} from "../structures/construction/construction-site-data";
 
-const getPlanner = function(): RoomPlannerInterface {
-    // TODO write ways to determine what planner to send
-    return new InitPlanner(this);
+const getPlanner = function(room: Room): RoomPlannerInterface {
+    if (room.memory && room.memory['plan']) {
+        return getPlannerByName(room, room.memory['plan']);
+    }
+
+    room.memory['plan'] = 'init';
+    return new InitPlanner(room);
 };
+
+function getPlannerByName(room: Room, name: string): RoomPlannerInterface {
+    switch (name) {
+        default: return new InitPlanner(room);
+    }
+}
 
 const findNextEnergySource = function(creep: Creep) {
     let sources = _.sortBy(this.find(FIND_SOURCES_ACTIVE), function(source: Source) {
@@ -142,19 +153,94 @@ function incrementAndDecrement(map: Map<CreepRoleEnum, number>, increment: Creep
     }
 }
 
+const isSpotOpen = function(pos:RoomPosition):boolean {
+    let isThisSpotOpen = true;
+    _.forEach(Game.rooms[pos.roomName].lookAt(pos), (s:LookAtResultWithPos) => {
+        if (this.isOpen(s)) {
+            isThisSpotOpen = false;
+        }
+    });
+    return isThisSpotOpen;
+}
+
+function isOpen(s: LookAtResultWithPos): boolean {
+    return !((s.type !== 'terrain' || s.terrain !== 'wall') &&
+        s.type !== 'structure' && s.type !== 'constructionSite');
+}
+
+function canPlaceRampart(pos:RoomPosition):boolean {
+    let isRampartOpen = true;
+    _.forEach(Game.rooms[pos.roomName].lookAt(pos), (s:LookAtResultWithPos) => {
+        if ((s.type === 'structure' && s.structure.structureType === STRUCTURE_RAMPART) ||
+            (s.type === 'terrain' && s.terrain === 'wall') || s.type === 'constructionSite') {
+            isRampartOpen = false;
+        }
+    });
+    return isRampartOpen;
+}
+
+const makeConstructionSites = function() {
+    if (this.memory['ticksTillNextConstruction']) {
+        this.memory['ticksTillNextConstruction'] -= 1;
+    }
+    if (!this.memory.sites || this.memory['ticksTillNextConstruction']) {
+        return;
+    }
+    this.memory['ticksTillNextConstruction'] = 120;
+    let numberConstructionSites = this.find(FIND_MY_CONSTRUCTION_SITES).length;
+    if (numberConstructionSites > 2) {
+        return;
+    }
+    let constructionSites:Array<ConstructionSiteData> = [];
+    let controllerLevel = this.controller ? this.controller.level : 0;
+    for (let i = 0; i <= controllerLevel; i++) {
+        if (this.memory.sites[i]) {
+            _.forEach(this.memory.sites[i], (structureType:StructureConstant, key:string) => {
+                let roomPosition = new RoomPosition(+key.split(":")[0], +key.split(":")[1], this.name);
+                if (this.isSpotOpen(roomPosition)) {
+                    constructionSites.push(new ConstructionSiteData(roomPosition, structureType));
+                }
+            });
+        }
+    }
+    if (controllerLevel > 1) {
+        _.forEach(this.memory['sites2'], (structureType:StructureConstant, key:string) => {
+            let roomPosition = new RoomPosition(+key.split(":")[0], +key.split(":")[1], this.name);
+            if (this.canPlaceRampart(roomPosition)) {
+                constructionSites.push(new ConstructionSiteData(roomPosition, structureType));
+            }
+        });
+    }
+    if (constructionSites.length > 0) {
+        ConstructionSiteData.sortByPriority(constructionSites, null);
+        console.log(constructionSites[0].pos.roomName + " " + constructionSites[0].structureType + ": " + constructionSites[0].pos.x + "x " + constructionSites[0].pos.y + "y");
+        this.createConstructionSite(constructionSites[0].pos, constructionSites[0].structureType);
+        if (numberConstructionSites < 2 && constructionSites.length > 1) {
+            console.log(constructionSites[1].pos.roomName + " " + constructionSites[1].structureType + ": " + constructionSites[1].pos.x + "x " + constructionSites[1].pos.y + "y");
+            this.createConstructionSite(constructionSites[1].pos, constructionSites[1].structureType);
+        }
+        if (numberConstructionSites < 1 && constructionSites.length > 2) {
+            console.log(constructionSites[2].pos.roomName + " " + constructionSites[2].structureType + ": " + constructionSites[2].pos.x + "x " + constructionSites[2].pos.y + "y");
+            this.createConstructionSite(constructionSites[2].pos, constructionSites[2].structureType);
+        }
+    }
+};
+
 declare global {
     interface Room {
         reassignAllCreeps(newRole: CreepRoleEnum, filter: Function);
         reassignSingleCreep(newRole: CreepRoleEnum, filter: Function);
         planner: RoomPlannerInterface;
         creepCountArray: Map<CreepRoleEnum, number>;
-        getPlanner(): RoomPlannerInterface;
+        getPlanner(room: Room): RoomPlannerInterface;
         getNumberOfCreepsByRole(role: string): number;
         findNextEnergySource(creep: Creep): Source;
         getNumberOfMiningSpacesAtSource(sourceId: Id<Source>): number;
         getTotalNumberOfMiningSpaces(): number;
         getNumberOfSources(): number;
         findNumberOfSourcesAndSpaces();
+        makeConstructionSites();
+        isSpotOpen(pos: RoomPosition): boolean;
     }
 }
 
@@ -171,6 +257,7 @@ export class RoomPrototype {
         Room.prototype.getNumberOfSources = getNumberOfSources;
         Room.prototype.getPlanner = getPlanner;
         Room.prototype.findNumberOfSourcesAndSpaces = findNumberOfSourcesAndSpaces;
-        getPlanner();
+        Room.prototype.makeConstructionSites = makeConstructionSites;
+        Room.prototype.isSpotOpen = isSpotOpen;
     }
 }
