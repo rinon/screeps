@@ -33,9 +33,9 @@ export class InitPlanner implements RoomPlannerInterface {
         if (upgraders < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        if (builders > transports && transports < 3) {
-            return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
-        }
+        // if (builders > transports && transports < 3) {
+        //     return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        // }
         if (transports > 3 && constructionSites > 0) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRANSPORT, type: 'single'};
         }
@@ -76,26 +76,41 @@ export class InitPlanner implements RoomPlannerInterface {
     }
 
     public getNextCreepToSpawn(): CreepSpawnData {
-        if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) < 1) {
+        const transports = this.room.getNumberOfCreepsByRole(Transport.KEY);
+        const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
+        const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
+        const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
+
+        if (transports < 1) {
             return CreepSpawnData.build(
                 Transport.KEY,
-                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 350)),
+                CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
                 0);
-        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) < 1) {
+        } else if (upgraders < 1) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 0);
-        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) < Math.max(2, this.room.getNumberOfSources())) {
+        } else if (miners < Math.max(2, this.room.getNumberOfSources())) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
-                0);
-        } else if (this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces())) {
+                0.5);
+        } else if (transports < 3) {
+            return CreepSpawnData.build(
+                Transport.KEY,
+                CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
+                0.2);
+        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces())) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
-                0);
+                0.3);
+        } else {
+            return CreepSpawnData.build(
+                Builder.KEY,
+                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
+                0.4);
         }
         return null;
     }

@@ -40,4 +40,21 @@ export class CreepBodyBuilder {
         }
         return bodyArray;
     }
+    static buildTransport(energyAvailable: number): Array<BodyPartConstant> {
+        let bodyArray:Array<BodyPartConstant> = [ MOVE, CARRY ];
+        energyAvailable -= 200;
+        let partCount = { 'MOVE': 1, 'CARRY': 1 };
+        while (energyAvailable >= 50 && bodyArray.length < 30) {
+            if (partCount['MOVE'] > partCount['CARRY']) {
+                bodyArray.unshift(CARRY);
+                partCount['CARRY'] += 1;
+                energyAvailable -= CreepSpawnData.getBodyPartCost(CARRY);
+            } else {
+                partCount['MOVE'] += 1;
+                bodyArray.unshift(MOVE);
+                energyAvailable -= CreepSpawnData.getBodyPartCost(MOVE);
+            }
+        }
+        return bodyArray;
+    }
 }
