@@ -7,6 +7,7 @@ export class RoomController {
         RoomPrototype.init();
         _.forEach(Game.rooms, function(room: Room) {
             SpawnController.spawnCreeps(room);
+            room.buildMemory();
             room.makeConstructionSites();
         });
     }
