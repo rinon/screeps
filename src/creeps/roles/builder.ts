@@ -28,7 +28,9 @@ export class Builder {
 
     static findNextJob(creep: Creep) {
         let repairThese = _.sortBy(creep.room.find(FIND_STRUCTURES, { filter: (s:Structure) => {
-                return s.hits / s.hitsMax < 0.75 && s.hits < 250000;
+                return ((s.structureType !== STRUCTURE_RAMPART &&
+                    s.structureType !== STRUCTURE_WALL) || s.hits < 1000) &&
+                    s.hits / s.hitsMax < 0.75 && s.hits < 250000;
             }}), (s: Structure) => { return -1 * s.hits; });
         if (repairThese.length > 0) {
             RepairAction.setAction(creep, repairThese[0]);
@@ -37,8 +39,17 @@ export class Builder {
             if (site) {
                 BuildAction.setAction(creep, site);
             } else {
-                creep.room.reassignIdleCreep(creep);
-                return;
+                let repairThese2 = _.sortBy(creep.room.find(FIND_STRUCTURES, { filter: (s:Structure) => {
+                        return (s.structureType === STRUCTURE_RAMPART ||
+                            s.structureType === STRUCTURE_WALL) &&
+                            s.hits / s.hitsMax < 0.75 && s.hits < 250000;
+                    }}), (s: Structure) => { return -1 * s.hits; });
+                if (repairThese2.length > 0) {
+                    RepairAction.setAction(creep, repairThese2[0]);
+                } else {
+                    creep.room.reassignIdleCreep(creep);
+                    return;
+                }
             }
         }
     }

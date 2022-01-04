@@ -250,8 +250,10 @@ const buildMemory = function() {
         return;
     }
 
-    if (!this.memory['exits']) {
-        this.memory['exits'] = {};
+    if (!this.memory['exits'] || Object.keys(this.memory['exits']).indexOf("" + FIND_EXIT_TOP) === -1) {
+        if (!this.memory['exits']) {
+            this.memory['exits'] = {};
+        }
         this.memory['exits'][FIND_EXIT_TOP] = findExitAndPlanWalls(FIND_EXIT_TOP, this);
         return;
     }
