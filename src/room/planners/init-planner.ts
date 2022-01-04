@@ -102,7 +102,7 @@ export class InitPlanner implements RoomPlannerInterface {
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 transports > 1 ? 1 : 0.5);
-        } else if (transports < 3 || transports < builders + upgraders / 2) {
+        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 8)) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
@@ -112,7 +112,7 @@ export class InitPlanner implements RoomPlannerInterface {
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 1);
-        } else if (builders < 8) {
+        } else if (builders < 6) {
             return CreepSpawnData.build(
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
