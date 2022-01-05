@@ -255,21 +255,6 @@ export class InitPlanner implements RoomPlannerInterface {
 
 }
 
-const isSpotOpen = function(pos:RoomPosition):boolean {
-    let isThisSpotOpen = true;
-    _.forEach(Game.rooms[pos.roomName].lookAt(pos), (s:LookAtResultWithPos) => {
-        if (isOpen(s)) {
-            isThisSpotOpen = false;
-        }
-    });
-    return isThisSpotOpen;
-}
-
-function isOpen(s: LookAtResultWithPos): boolean {
-    return !((s.type !== 'terrain' || s.terrain !== 'wall') &&
-        s.type !== 'structure' && s.type !== 'constructionSite');
-}
-
 function findExitAndPlanWalls(exit:ExitConstant, room:Room):boolean {
     if (!room.memory['sites2']) {
         room.memory['sites2'] = {};
@@ -326,25 +311,25 @@ function findExitAndPlanWalls(exit:ExitConstant, room:Room):boolean {
         if (spotHasNoWall) {
             if (exitSize === 0) {
                 if (isX) {
-                    if (isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
                         room.memory['sites'][2][(x - 1) + ":" + y] = STRUCTURE_WALL;
                     }
-                    if (isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(x - 1, y, room.name))) {
                         room.memory['sites'][2][(x - 2) + ":" + y] = STRUCTURE_WALL;
                     }
                     let newY = y === 2 ? 1 : 48;
-                    if (isSpotOpen(new RoomPosition(x - 1, newY, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(x - 1, newY, room.name))) {
                         room.memory['sites'][2][(x - 2) + ":" + newY] = STRUCTURE_WALL;
                     }
                 } else {
-                    if (isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
                         room.memory['sites'][2][x + ":" + (y - 1)] = STRUCTURE_WALL;
                     }
-                    if (isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(x, y - 1, room.name))) {
                         room.memory['sites'][2][x + ":" + (y - 2)] = STRUCTURE_WALL;
                     }
                     let newX = x === 2 ? 1 : 48;
-                    if (isSpotOpen(new RoomPosition(newX, y - 1, room.name))) {
+                    if (room.isSpotOpen(new RoomPosition(newX, y - 1, room.name))) {
                         room.memory['sites'][2][newX + ":" + (y - 2)] = STRUCTURE_WALL;
                     }
                 }
@@ -357,25 +342,25 @@ function findExitAndPlanWalls(exit:ExitConstant, room:Room):boolean {
             }
         } else if (exitSize) {
             if (isX) {
-                if (isSpotOpen(new RoomPosition(x, y, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(x, y, room.name))) {
                     room.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
                 }
-                if (isSpotOpen(new RoomPosition(x + 1, y, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(x + 1, y, room.name))) {
                     room.memory['sites'][2][(x + 1) + ":" + y] = STRUCTURE_WALL;
                 }
                 let newY = y === 2 ? 1 : 48;
-                if (isSpotOpen(new RoomPosition(x + 1, newY, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(x + 1, newY, room.name))) {
                     room.memory['sites'][2][(x + 1) + ":" + newY] = STRUCTURE_WALL;
                 }
             } else {
-                if (isSpotOpen(new RoomPosition(x, y, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(x, y, room.name))) {
                     room.memory['sites'][2][x + ":" + y] = STRUCTURE_WALL;
                 }
-                if (isSpotOpen(new RoomPosition(x, y + 1, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(x, y + 1, room.name))) {
                     room.memory['sites'][2][x + ":" + (y + 1)] = STRUCTURE_WALL;
                 }
                 let newX = x === 2 ? 1 : 48;
-                if (isSpotOpen(new RoomPosition(newX, y + 1, room.name))) {
+                if (room.isSpotOpen(new RoomPosition(newX, y + 1, room.name))) {
                     room.memory['sites'][2][newX + ":" + (y + 1)] = STRUCTURE_WALL;
                 }
             }
@@ -563,7 +548,7 @@ function placeContainerAndLink(pos:RoomPosition, linkNumber:number) {
     }
     let containerPos = null;
     let linkPos = null;
-    _.forEach(Game.rooms[pos.roomName].lookAtArea(pos.y-1, pos.x-1, pos.y+1, pos.x+1, true), (s:LookAtResultWithPos) => {
+    _.forEach(room.lookAtArea(pos.y-1, pos.x-1, pos.y+1, pos.x+1, true), (s:LookAtResultWithPos) => {
         if (!positionMap[s.x + ":" + s.y]) {
             return;
         }
@@ -577,7 +562,7 @@ function placeContainerAndLink(pos:RoomPosition, linkNumber:number) {
             delete positionMap[s.x + ":" + s.y];
             return;
         }
-        if (isOpen(s)) {
+        if (room.isOpen(s)) {
             delete positionMap[s.x + ":" + s.y];
             return;
         }
@@ -626,7 +611,8 @@ function getFirstOpenAdjacentSpot(pos:RoomPosition):RoomPosition {
             delete positionMap[s.x + ":" + s.y];
             return;
         }
-        if (isOpen(s)) {
+        const room = Game.rooms[pos.roomName];
+        if (room.isOpen(s)) {
             delete positionMap[s.x + ":" + s.y];
         }
     });

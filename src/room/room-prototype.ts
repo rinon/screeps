@@ -221,6 +221,20 @@ const makeConstructionSites = function() {
     }
 };
 
+const isSpotOpen = function(pos:RoomPosition):boolean {
+    let isThisSpotOpen = true;
+    _.forEach(Game.rooms[pos.roomName].lookAt(pos), (s:LookAtResultWithPos) => {
+        if (this.isOpen(s)) {
+            isThisSpotOpen = false;
+        }
+    });
+    return isThisSpotOpen;
+}
+const isOpen = function(s: LookAtResultWithPos): boolean {
+    return !((s.type !== 'terrain' || s.terrain !== 'wall') &&
+        s.type !== 'structure' && s.type !== 'constructionSite');
+}
+
 const reassignIdleCreep = function(creep: Creep) {
     const oldRole = creep.memory['role'];
     if (oldRole == Transport.KEY || oldRole == Miner.KEY) {
@@ -257,6 +271,8 @@ declare global {
         getNumberOfSources(): number;
         findNumberOfSourcesAndSpaces();
         makeConstructionSites();
+        isSpotOpen(pos:RoomPosition):boolean;
+        isOpen(s:LookAtResultWithPos):boolean;
         reassignIdleCreep(creep: Creep);
     }
 }
@@ -276,5 +292,7 @@ export class RoomPrototype {
         Room.prototype.findNumberOfSourcesAndSpaces = findNumberOfSourcesAndSpaces;
         Room.prototype.makeConstructionSites = makeConstructionSites;
         Room.prototype.reassignIdleCreep = reassignIdleCreep;
+        Room.prototype.isSpotOpen = isSpotOpen;
+        Room.prototype.isOpen = isOpen;
     }
 }
