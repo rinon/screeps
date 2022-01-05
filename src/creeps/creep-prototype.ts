@@ -97,8 +97,7 @@ const deliverEnergyToSpawner = function() {
         TransferAction.setAction(this, spawnerContainer, RESOURCE_ENERGY);
     } else {
         const mostEmptyContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
-                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE
-                    || s.structureType === STRUCTURE_LINK) &&
+                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
                     s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
             }}), (s:Structure) => { return s['store'].energy;});
         if (mostEmptyContainer.length) {
