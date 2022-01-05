@@ -11,7 +11,7 @@ export class RoomController {
             TowerController.run(room);
             room.getPlanner(room).reassignCreeps();
             SpawnController.spawnCreeps(room);
-            room.buildMemory();
+            room.getPlanner(room).buildMemory();
             room.makeConstructionSites();
             LinkController.run(room);
         });
