@@ -53,8 +53,7 @@ const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
     let closestContainer = null;
     if (findHighest) {
         closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
-                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
-                    s.structureType === STRUCTURE_LINK) &&
+                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
                     s['store'].energy > 0;
             }}), (s:Structure) => { return -1 * s['store'].energy});
         if (closestContainer.length > 0) {
