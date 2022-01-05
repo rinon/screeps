@@ -49,12 +49,26 @@ const moveToTarget = function() {
     }
 };
 
-const goGetEnergy = function(hasWorkComponent: boolean) {
-    const closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
-            return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
-                s.structureType === STRUCTURE_LINK) &&
-                s['store'].energy > 0;
-        }});
+const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
+    let closestContainer = null;
+    if (findHighest) {
+        closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
+                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
+                    s.structureType === STRUCTURE_LINK) &&
+                    s['store'].energy > 0;
+            }}), (s:Structure) => { return -1 * s['store'].energy});
+        if (closestContainer.length > 0) {
+            closestContainer = closestContainer[0];
+        } else {
+            closestContainer = null;
+        }
+    } else {
+        closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
+                return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE ||
+                    s.structureType === STRUCTURE_LINK) &&
+                    s['store'].energy > 0;
+            }});
+    }
     if (closestContainer != null) {
         WithdrawAction.setAction(this, closestContainer, RESOURCE_ENERGY);
     } else {
@@ -86,7 +100,7 @@ const deliverEnergyToSpawner = function() {
                 return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE
                     || s.structureType === STRUCTURE_LINK) &&
                     s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
-            }}), (s:Structure) => { return s['store'].getFreeCapacity(RESOURCE_ENERGY);});
+            }}), (s:Structure) => { return s['store'].energy;});
         if (mostEmptyContainer.length) {
             TransferAction.setAction(this, mostEmptyContainer[0], RESOURCE_ENERGY);
         } else {
@@ -171,7 +185,7 @@ const runAction = function() {
 declare global {
     interface Creep {
         moveToTarget();
-        goGetEnergy(hasWorkComponent);
+        goGetEnergy(hasWorkComponent: boolean, findHighest: boolean);
         deliverEnergyToSpawner();
         setNextAction();
         runAction();

@@ -22,13 +22,14 @@ export class TowerController {
                     return;
                 }
                 if (tower.store.getUsedCapacity(RESOURCE_ENERGY) > 750 &&
-                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) > 2 &&
+                        tower.room.controller.level > 4 &&
+                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) > 0 &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > 2 &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 4 &&
                         tower.room.energyAvailable > 0.6 * tower.room.energyCapacityAvailable &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) >= Math.max(2, tower.room.getNumberOfSources())) {
                     let damagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s: Structure) => {
-                            return s.hits / s.hitsMax < 0.75 && s.hits < 250000;
+                            return s.hits / s.hitsMax < 0.75 && s.hits < 150000;
                         }});
                     if (damagedStructure) {
                         tower.repair(damagedStructure);

@@ -13,7 +13,7 @@ export class Upgrader {
                 break;
             case UpgradeControllerAction.KEY:
             default:
-                creep.goGetEnergy(true);
+                creep.goGetEnergy(true, false);
                 break;
         }
         creep.runAction();

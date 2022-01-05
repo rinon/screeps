@@ -36,7 +36,7 @@ export class InitPlanner implements RoomPlannerInterface {
         if (builders > transports && transports < 2) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        if (upgraders / 2 > builders && constructionSites > 0) {
+        if (((upgraders / 2 > builders && constructionSites > 0) || builders < 1) && upgraders > 1) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
         return null;
@@ -80,6 +80,7 @@ export class InitPlanner implements RoomPlannerInterface {
         const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
                 return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 170;
             }}).length > 0;
+        const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
 
         if (transports < 1) {
             return CreepSpawnData.build(
@@ -102,20 +103,21 @@ export class InitPlanner implements RoomPlannerInterface {
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 transports > 1 ? 1 : 0.5);
-        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 8)) {
+        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 8) ||
+                (constructionSites < 1 && transports < 7)) {
             return CreepSpawnData.build(
                 Transport.KEY,
-                CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
+                CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 700)),
                 transports > 1 ? 1 : 0.4);
         } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
-                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
+                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
                 1);
-        } else if (builders < 6) {
+        } else if (builders < 6 && constructionSites > 0) {
             return CreepSpawnData.build(
                 Builder.KEY,
-                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
+                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
                 1);
         }
         return null;

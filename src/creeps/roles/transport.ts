@@ -11,7 +11,7 @@ export class Transport {
             case WithdrawAction.KEY:
             case MineEnergyAction.KEY:
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) < 1) {
-                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
+                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0, true);
                 } else {
                     creep.deliverEnergyToSpawner();
                 }
@@ -21,7 +21,7 @@ export class Transport {
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                     creep.deliverEnergyToSpawner();
                 } else {
-                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0);
+                    creep.goGetEnergy(creep.getActiveBodyparts(WORK) > 0, true);
                 }
                 break;
         }
