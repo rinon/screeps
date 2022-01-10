@@ -465,6 +465,44 @@ function loopFromCenter(room:Room, x:number, y:number, size:number, callback:Fun
     callback(x, y);
 }
 
+function getPositionPlusShapeBuffer(room:Room, type:StructureConstant):ConstructionSiteData {
+    let center:RoomPosition = room.memory['center'];
+    if (!room.memory['loopCenter']) {
+        room.memory['loopCenter'] = {};
+    }
+    let size:number = 38 - 2 * Math.max(Math.abs(center.x - 25), Math.abs(center.y - 25));
+    let siteFound:ConstructionSiteData = null;
+    loopFromCenter(room, center.x, center.y, size, (currentX:number, currentY:number) => {
+        if (room.memory['loopCenter'][currentX + ":" + currentY]) {
+            return false;
+        }
+        room.memory['loopCenter'][currentX + ":" + currentY] = true;
+        let positionOk = true;
+        let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
+        if (hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+            return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
+            positionOk = false;
+        }
+        if (positionOk) {
+            const topPosition = new RoomPosition(currentX, currentY+1, room.name);
+            const topPosOk = !hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
+            const bottomPosition = new RoomPosition(currentX, currentY-1, room.name);
+            const bottomPosOk = !hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
+            const rightPosition = new RoomPosition(currentX+1, currentY, room.name);
+            const rightPosOk = !hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
+            const leftPosition = new RoomPosition(currentX-1, currentY, room.name);
+            const leftPosOk = !hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
+            positionOk = topPosOk && bottomPosOk && leftPosOk && rightPosOk;
+        }
+        if (positionOk) {
+            siteFound = new ConstructionSiteData(new RoomPosition(currentX, currentY, room.name), type);
+            return true;
+        }
+        return false;
+    });
+    return siteFound;
+}
+
 function getPositionWithBuffer(room:Room, buffer:number, type:StructureConstant):ConstructionSiteData {
     let center:RoomPosition = room.memory['center'];
     if (!room.memory['loopCenter']) {
@@ -526,7 +564,12 @@ function planBuildings(room:Room, structureType:StructureConstant) {
     for (let i = 0; i < 9; i++) {
         while (numberPlaced < CONTROLLER_STRUCTURES[structureType][i]) {
             numberPlaced++;
-            let constructionSiteData:ConstructionSiteData = getPositionWithBuffer(room, 1, structureType);
+            let constructionSiteData:ConstructionSiteData = null;
+            if (structureType == STRUCTURE_EXTENSION) {
+                constructionSiteData = getPositionPlusShapeBuffer(room, structureType);
+            } else {
+                constructionSiteData = getPositionWithBuffer(room, 1, structureType);
+            }
             if (constructionSiteData) {
                 room.memory['sites'][i][constructionSiteData.pos.x + ":" + constructionSiteData.pos.y] = structureType;
             }
