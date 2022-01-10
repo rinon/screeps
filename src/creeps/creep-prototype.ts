@@ -59,7 +59,15 @@ const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
         if (closestContainer.length > 0) {
             closestContainer = closestContainer[0];
         } else {
-            closestContainer = null;
+            closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
+                    return s.structureType === STRUCTURE_LINK &&
+                        s['store'].energy > 0;
+                }}), (s:Structure) => { return -1 * s['store'].energy});
+            if (closestContainer.length > 0) {
+                closestContainer = closestContainer[0];
+            } else {
+                closestContainer = null;
+            }
         }
     } else {
         closestContainer = this.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s:Structure) => {
