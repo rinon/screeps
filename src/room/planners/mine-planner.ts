@@ -29,6 +29,9 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
             }
             return;
         }
+        if (this.room.find(FIND_MY_CREEPS).length < 1) {
+            return;
+        }
         if (!this.room.memory['sources']) {
             this.room.memory['sources'] = {};
             let sources = this.room.find(FIND_SOURCES);

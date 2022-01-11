@@ -44,7 +44,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         } else if (spawns < 1 && miners < 2 && travelers > 0) {
             return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
-        } else if (spawns < 1 && travelers > 0) {
+        } else if (spawns < 1 && travelers > 0 && upgraders < 3) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
         if (spawns > 0 && transports < 1 && builders > 0) {
@@ -167,6 +167,9 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             if (!this.room.memory['sites2']) {
                 this.room.memory['sites2'] = {};
             }
+            return;
+        }
+        if (this.room.find(FIND_MY_CREEPS).length < 1) {
             return;
         }
 

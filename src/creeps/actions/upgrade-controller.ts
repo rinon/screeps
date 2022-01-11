@@ -8,7 +8,7 @@ export class UpgradeControllerAction {
             delete creep.memory['action'];
             delete creep.memory['target'];
             delete creep.memory['destination'];
-            creep.memory['role'] = 'homing';
+            creep.memory['role'] = 'traveler';
             creep.setNextAction();
             return;
         }

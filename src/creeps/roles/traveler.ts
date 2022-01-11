@@ -17,7 +17,9 @@ export class Traveler {
                     creep.memory['endRoom'] = creep.memory['homeRoom'];
                 }
                 if (creep.memory['endRoom'] == creep.room.name && creep.memory['homeRoom'] != creep.room.name) {
-                    if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.room.find(FIND_SOURCES).length > 0) {
+                    if (creep.room.controller && creep.room.controller.my) {
+                        Traveler.getNextRoom(creep);
+                    } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.room.find(FIND_SOURCES).length > 0) {
                         creep.goGetEnergy(true, false);
                     } else {
                         Traveler.getNextRoom(creep);

@@ -55,9 +55,11 @@ export class GrandStrategyPlanner {
             }
             let numberOfSpots = 0;
             let numberOfCreeps = room.find(FIND_MY_CREEPS).length;
-            _.forEach(room.memory['sources'], (sourceNumber) => {
-                numberOfSpots += sourceNumber;
-            });
+            if (room.memory['sources'] && room.memory['sources']['sources']) {
+                _.forEach(room.memory['sources']['sources'], (sourceNumber) => {
+                    numberOfSpots += sourceNumber;
+                });
+            }
             if (numberOfCreeps - 4 < Math.max(2, numberOfSpots) && room.controller && room.controller.my) {
                 emergencyHelpNeeded = true;
                 helpRoom = room.name;
@@ -74,7 +76,7 @@ export class GrandStrategyPlanner {
                     helpRoom = room.name;
                 } else if (!emergencyHelpNeeded && !helpReallyNeeded && numberOfCreeps - 4 < Math.max(2, numberOfSpots)) {
                     helpRoom = room.name;
-                } else if (!emergencyHelpNeeded && !helpReallyNeeded) {
+                } else if (!emergencyHelpNeeded && !helpReallyNeeded && (!room.controller || !room.controller.my)) {
                     helpRoom = room.name;
                 }
             }

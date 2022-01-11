@@ -54,9 +54,25 @@ const moveToTarget = function() {
 const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
     let closestContainer = null;
     if (findHighest) {
+        if (this.room.memory && !this.memory['ccontainer'] && this.room.controller) {
+            let closestContainer = null;
+            let closestDistance = 99;
+            _.forEach(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
+                    return s.structureType == STRUCTURE_CONTAINER;
+                }}), (s:Structure) => {
+                const distance = s.pos.getRangeTo(this.room.controller.pos);
+                if (!closestContainer || distance < closestDistance) {
+                    closestContainer = s;
+                    closestDistance = distance;
+                }
+            });
+            if (closestContainer) {
+                this.room.memory['ccontainer'] = closestContainer.id;
+            }
+        }
         closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
                 return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
-                    s['store'].energy > 0;
+                    s['store'].energy > 0 && (!this.room.memory['ccontainer'] || s.id != this.room.memory['ccontainer']);
             }}), (s:Structure) => { return -1 * s['store'].energy});
         if (closestContainer.length > 0) {
             closestContainer = closestContainer[0];
@@ -107,7 +123,8 @@ const deliverEnergyToSpawner = function() {
     } else {
         const mostEmptyContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
                 return (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
-                    s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
+                    s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0 &&
+                    (s.room.memory['closestLink'] == null || s.room.memory['closestLink'] != s.id);
             }}), (s:Structure) => { return s['store'].energy;});
         if (mostEmptyContainer.length) {
             TransferAction.setAction(this, mostEmptyContainer[0], RESOURCE_ENERGY);
