@@ -23,6 +23,17 @@ export class Miner {
                 break;
             case TransferAction.KEY:
             default:
+                const sources = creep.room.find(FIND_SOURCES_ACTIVE);
+                for (let source of sources) {
+                    const otherMinersOnSource = creep.room.find(FIND_MY_CREEPS, {filter: (c:Creep) => {
+                        return c.memory && c.memory['role'] == 'miner' && c.memory['target'] == source.id;
+                        }});
+                    if (otherMinersOnSource.length < 1) {
+                        MineEnergyAction.setActionWithTarget(creep, source);
+                        creep.runAction();
+                        return;
+                    }
+                }
                 MineEnergyAction.setAction(creep);
                 break;
         }
