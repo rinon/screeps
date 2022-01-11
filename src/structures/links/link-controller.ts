@@ -11,6 +11,9 @@ export class LinkController {
                 closestLink = link;
                 closestLinkRange = range;
             }});
+        if (closestLink != null && room.memory != null && room.memory['closestLink'] == null) {
+            room.memory['closestLink'] = closestLink.id;
+        }
         _.forEach(myLinks, (link: StructureLink) => {
             if (closestLink.id != link.id && link.cooldown < 1 && link.store.energy > 0) {
                 link.transferEnergy(closestLink, Math.min(link.store.energy, closestLink.store.getFreeCapacity(RESOURCE_ENERGY)))

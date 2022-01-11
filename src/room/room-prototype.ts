@@ -6,19 +6,33 @@ import {ConstructionSiteData} from "../structures/construction/construction-site
 import {WaitAction} from "../creeps/actions/wait";
 import {Transport} from "../creeps/roles/transport";
 import {Miner} from "../creeps/roles/miner";
+import {MinePlanner} from "./planners/mine-planner";
+import {VoidPlanner} from "./planners/void-planner";
 
 const getPlanner = function(room: Room): RoomPlannerInterface {
     if (room.memory && room.memory['plan']) {
         return getPlannerByName(room, room.memory['plan']);
     }
 
-    room.memory['plan'] = 'init';
+    room.memory['plan'] = getPlannerType(room);
     return new InitPlanner(room);
 };
 
+function getPlannerType(room: Room):string {
+    if (room.controller != null && room.controller.my) {
+        return 'init';
+    } else if (room.controller != null) {
+        return 'mine';
+    } else {
+        return 'void';
+    }
+}
+
 function getPlannerByName(room: Room, name: string): RoomPlannerInterface {
     switch (name) {
-        default: return new InitPlanner(room);
+        case 'mine': return new MinePlanner(room);
+        case 'init': return new InitPlanner(room);
+        default: return new VoidPlanner(room);
     }
 }
 
@@ -40,6 +54,40 @@ const findNextEnergySource = function(creep: Creep) {
     }
     if (sources.length > 0) {
         return sources[0];
+    }
+};
+
+const getAdjacentRoomName = function(direction:ExitConstant):string {
+    let isWest = this.name.indexOf("W") !== -1;
+    let isNorth = this.name.indexOf("N") !== -1;
+    let splitName = this.name.slice(1).split(isNorth ? "N" : "S");
+    let x = Number(splitName[0]);
+    let y = Number(splitName[1]);
+
+    if (direction === FIND_EXIT_TOP) {
+        if (isNorth) {
+            return (isWest ? "W" : "E") + x + "N" + (y+1);
+        } else {
+            return (isWest ? "W" : "E") + x + "S" + (y-1);
+        }
+    } else if (direction === FIND_EXIT_LEFT) {
+        if (isWest) {
+            return "W" + (x+1) + (isNorth ? "N" : "S") + y;
+        } else {
+            return "W" + (x-1) + (isNorth ? "N" : "S") + y;
+        }
+    } else if (direction === FIND_EXIT_RIGHT) {
+        if (isWest) {
+            return "W" + (x-1) + (isNorth ? "N" : "S") + y;
+        } else {
+            return "W" + (x+1) + (isNorth ? "N" : "S") + y;
+        }
+    } else if (direction === FIND_EXIT_BOTTOM) {
+        if (isNorth) {
+            return (isWest ? "W" : "E") + x + "N" + (y-1);
+        } else {
+            return (isWest ? "W" : "E") + x + "S" + (y+1);
+        }
     }
 };
 
@@ -274,6 +322,7 @@ declare global {
         isSpotOpen(pos:RoomPosition):boolean;
         isOpen(s:LookAtResultWithPos):boolean;
         reassignIdleCreep(creep: Creep);
+        getAdjacentRoomName(direction:ExitConstant):string;
     }
 }
 
@@ -294,5 +343,6 @@ export class RoomPrototype {
         Room.prototype.reassignIdleCreep = reassignIdleCreep;
         Room.prototype.isSpotOpen = isSpotOpen;
         Room.prototype.isOpen = isOpen;
+        Room.prototype.getAdjacentRoomName = getAdjacentRoomName;
     }
 }

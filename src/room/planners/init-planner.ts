@@ -8,24 +8,37 @@ import {Miner} from "../../creeps/roles/miner";
 import {Builder} from "../../creeps/roles/builder";
 import * as _ from "lodash";
 import {ConstructionSiteData} from "../../structures/construction/construction-site-data";
+import {Planner} from "./planner";
+import {Traveler} from "../../creeps/roles/traveler";
 
-export class InitPlanner implements RoomPlannerInterface {
+export class InitPlanner extends Planner implements RoomPlannerInterface {
     private room: Room;
     private creepsAssigned = false;
 
     constructor(room: Room) {
+        super();
         this.room = room;
     }
 
     public getNextReassignRole() {
+        const travelers = this.room.getNumberOfCreepsByRole(Traveler.KEY);
         const transports = this.room.getNumberOfCreepsByRole(Transport.KEY);
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
         const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
+        const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
         // const spawnersNeedingEnergy = this.room.find(FIND_MY_STRUCTURES, {filter: (s:Structure) => {
         //         return s['store'] && (s.structureType === STRUCTURE_SPAWN ||
         //             s.structureType === STRUCTURE_EXTENSION) && s['store'].getFreeCapacity(RESOURCE_ENERGY) > 0;
         //     }});
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
+        const spawns = this.room.find(FIND_MY_SPAWNS).length;
+        if (spawns < 1 && upgraders < 1 && travelers > 0) {
+            return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
+        } else if (spawns < 1 && upgraders < 1 && builders > 0) {
+            return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+        } else if (spawns < 1 && upgraders < 1 && miners > 0) {
+            return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.MINER, type: 'single'};
+        }
         if (transports < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
@@ -139,6 +152,28 @@ export class InitPlanner implements RoomPlannerInterface {
             return;
         }
 
+        if (!this.room.memory['sources']) {
+            this.room.memory['sources'] = {};
+            let sources = this.room.find(FIND_SOURCES);
+            if (!Memory['roomData']) {
+                Memory['roomData'] = {};
+            }
+            if (!Memory['roomData'][this.room.name]) {
+                Memory['roomData'][this.room.name] = {};
+            }
+            Memory['roomData'][this.room.name]['sources'] = {
+                qty: sources.length
+            };
+            let totalSourceSpots = 0;
+            _.forEach(sources, (source:Source) => {
+                let currentNumberOfSpots = this.room.getNumberOfMiningSpacesAtSource(source.id);
+                totalSourceSpots += currentNumberOfSpots;
+                this.room.memory['sources'][source.id] = currentNumberOfSpots;
+            });
+            Memory['roomData'][this.room.name]['sources']['spots'] = totalSourceSpots;
+            return;
+        }
+
         if (!this.room.memory['exits'] || Object.keys(this.room.memory['exits']).indexOf("" + FIND_EXIT_TOP) === -1) {
             if (!this.room.memory['exits']) {
                 this.room.memory['exits'] = {};
@@ -168,17 +203,17 @@ export class InitPlanner implements RoomPlannerInterface {
             let containerLocationsNeeded = [];
             let linkNumber = 5;
             _.forEach(sources, (source:Source) => {
-                placeContainerAndLink(source.pos, linkNumber);
+                this.placeContainerAndLink(source.pos, linkNumber);
                 linkNumber++;
                 containerLocationsNeeded.push(source);
             });
             if (this.room.controller) {
                 containerLocationsNeeded.push(this.room.controller);
-                placeContainerAndLink(this.room.controller.pos, 5);
+                this.placeContainerAndLink(this.room.controller.pos, 5);
             }
             this.room.memory['center'] = this.room.getPositionAt(25, 25);
             if (containerLocationsNeeded.length) {
-                this.room.memory['center'] = getCenterOfArray(containerLocationsNeeded, this.room);
+                this.room.memory['center'] = this.getCenterOfArray(containerLocationsNeeded, this.room);
             }
 
             let minerals = this.room.find(FIND_MINERALS);
@@ -391,26 +426,6 @@ function findExitAndPlanWalls(exit:ExitConstant, room:Room):boolean {
     return exitExists;
 }
 
-function getCenterOfArray(roomObjects:Array<RoomObject>, room:Room):RoomPosition {
-    let maxX = 50;
-    let minX = 0;
-    let maxY = 50;
-    let minY = 0;
-    let roomName = room.name;
-    _.forEach(roomObjects, (entity:RoomObject) => {
-        if (!entity || !entity.pos) {
-            return;
-        }
-        maxX = entity.pos.x > maxX ? entity.pos.x : maxX;
-        minX = entity.pos.x < minX ? entity.pos.x : minX;
-        maxY = entity.pos.y > maxY ? entity.pos.y : maxY;
-        minY = entity.pos.y < minY ? entity.pos.y : minY;
-    });
-    let x = Math.round(minX + Math.floor(Math.abs(maxX - minX) / 2));
-    let y = Math.round(minY + Math.floor(Math.abs(maxY - minY) / 2));
-    return new RoomPosition(x, y, roomName);
-}
-
 function getPlannedCostMatrix(room:Room) {
     return (roomName:string, costMatrix:CostMatrix):CostMatrix => {
         if (roomName == room.name) {
@@ -431,7 +446,7 @@ function planRoadAlongPath(room:Room, path:Array<PathStep>) {
         _.forEach(path, (pathStep:PathStep) => {
             if (pathStep.x !== 0 && pathStep.y !== 0 &&
                 pathStep.x !== 49 && pathStep.y !== 49 &&
-                !hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name))) {
+                !this.hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name))) {
                 room.memory['sites'][0][pathStep.x + ":" + pathStep.y] = STRUCTURE_ROAD;
             }
         });
@@ -479,19 +494,19 @@ function getPositionPlusShapeBuffer(room:Room, type:StructureConstant):Construct
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (this.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (positionOk) {
             const topPosition = new RoomPosition(currentX, currentY+1, room.name);
-            const topPosOk = !hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
+            const topPosOk = !this.hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
             const bottomPosition = new RoomPosition(currentX, currentY-1, room.name);
-            const bottomPosOk = !hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
+            const bottomPosOk = !this.hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
             const rightPosition = new RoomPosition(currentX+1, currentY, room.name);
-            const rightPosOk = !hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
+            const rightPosOk = !this.hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
             const leftPosition = new RoomPosition(currentX-1, currentY, room.name);
-            const leftPosOk = !hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
+            const leftPosOk = !this.hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
             positionOk = topPosOk && bottomPosOk && leftPosOk && rightPosOk;
         }
         if (positionOk) {
@@ -517,14 +532,14 @@ function getPositionWithBuffer(room:Room, buffer:number, type:StructureConstant)
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (this.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (buffer > 0 && positionOk) {
             loopFromCenter(room, currentX, currentY, 1 + 2 * buffer, (bufferX:number, bufferY:number) => {
                 let currentBufferPosition:RoomPosition = new RoomPosition(bufferX, bufferY, room.name);
-                if (hasPlannedStructureAt(currentBufferPosition) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
+                if (this.hasPlannedStructureAt(currentBufferPosition) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
                     return c.type === 'structure' && c.structure.structureType !== STRUCTURE_ROAD; }).length) {
                     positionOk = false;
                     return true;
@@ -576,107 +591,4 @@ function planBuildings(room:Room, structureType:StructureConstant) {
         }
     }
     room.memory[structureType + 'Structure'] = true;
-}
-
-function placeContainerAndLink(pos:RoomPosition, linkNumber:number) {
-    let room:Room = Game.rooms[pos.roomName];
-    if (!room) {
-        return;
-    }
-    let positionMap = {};
-    for (let i = -1; i < 2; i++) {
-        for (let j = -1; j < 2; j++) {
-            positionMap[(pos.x + i) + ":" + (pos.y + j)] = new RoomPosition(pos.x + i, pos.y + j, pos.roomName);
-        }
-    }
-    let containerPos = null;
-    let linkPos = null;
-    _.forEach(room.lookAtArea(pos.y-1, pos.x-1, pos.y+1, pos.x+1, true), (s:LookAtResultWithPos) => {
-        if (!positionMap[s.x + ":" + s.y]) {
-            return;
-        }
-        if (s.type === 'structure' && s.structure.structureType === STRUCTURE_CONTAINER) {
-            containerPos = new RoomPosition(s.x, s.y, room.name);
-            delete positionMap[s.x + ":" + s.y];
-            return;
-        }
-        if (s.type === 'structure' && s.structure.structureType === STRUCTURE_LINK) {
-            linkPos = new RoomPosition(s.x, s.y, room.name);
-            delete positionMap[s.x + ":" + s.y];
-            return;
-        }
-        if (room.isOpen(s)) {
-            delete positionMap[s.x + ":" + s.y];
-            return;
-        }
-    });
-    if (containerPos) {
-        room.memory['sites'][0][containerPos.x + ":" + containerPos.y] = STRUCTURE_CONTAINER;
-    }
-    if (linkPos) {
-        room.memory['sites'][5][linkPos.x + ":" + linkPos.y] = STRUCTURE_LINK;
-    }
-    if (containerPos && linkPos) {
-        return;
-    }
-    for (let key in positionMap) {
-        if (key && positionMap[key]) {
-            if (!containerPos) {
-                containerPos = positionMap[key];
-                room.memory['sites'][0][key] = STRUCTURE_CONTAINER;
-            } else if (!linkPos) {
-                linkPos = positionMap[key];
-                room.memory['sites'][linkNumber][key] = STRUCTURE_LINK;
-            }
-        }
-    }
-    if (!linkPos && containerPos) {
-        let nextAvailablePosition = this.getFirstOpenAdjacentSpot(containerPos);
-        if (nextAvailablePosition) {
-            linkPos = nextAvailablePosition;
-            room.memory['sites'][linkNumber][linkPos.x + ":" + linkPos.y] = STRUCTURE_LINK;
-        }
-    }
-}
-
-function getFirstOpenAdjacentSpot(pos:RoomPosition):RoomPosition {
-    let positionMap = {};
-    for (let i = -1; i < 2; i++) {
-        for (let j = -1; j < 2; j++) {
-            positionMap[(pos.x + i) + ":" + (pos.y + j)] = new RoomPosition(pos.x + i, pos.y + j, pos.roomName);
-        }
-    }
-    _.forEach(Game.rooms[pos.roomName].lookAtArea(pos.y-1, pos.x-1, pos.y+1, pos.x+1, true), (s:LookAtResultWithPos) => {
-        if (!positionMap[s.x + ":" + s.y]) {
-            return;
-        }
-        if (hasPlannedStructureAt(new RoomPosition(s.x, s.y, pos.roomName))) {
-            delete positionMap[s.x + ":" + s.y];
-            return;
-        }
-        const room = Game.rooms[pos.roomName];
-        if (room.isOpen(s)) {
-            delete positionMap[s.x + ":" + s.y];
-        }
-    });
-    for (let key in positionMap) {
-        if (key && positionMap[key]) {
-            return positionMap[key];
-        }
-    }
-    return null;
-}
-
-function hasPlannedStructureAt(roomPosition:RoomPosition):boolean {
-    const room = Game.rooms[roomPosition.roomName];
-    if (!room.memory['sites']) {
-        return false;
-    }
-    for (let i = 0; i < 9; i++) {
-        let key = roomPosition.x + ":" + roomPosition.y;
-        if (room.memory['sites'][i] && room.memory['sites'][i][key]) {
-            return true;
-        }
-    }
-    return false;
 }

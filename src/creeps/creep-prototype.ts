@@ -17,6 +17,7 @@ import {Transport} from "./roles/transport";
 import {Builder} from "./roles/builder";
 import {Miner} from "./roles/miner";
 import * as _ from "lodash";
+import {Traveler} from "./roles/traveler";
 
 
 const moveToTarget = function() {
@@ -61,7 +62,7 @@ const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
         } else {
             closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
                     return s.structureType === STRUCTURE_LINK &&
-                        s['store'].energy > 0;
+                        s['store'].energy > 0 && (s.room.memory['closestLink'] == null || s.room.memory['closestLink'] != s.id);
                 }}), (s:Structure) => { return -1 * s['store'].energy});
             if (closestContainer.length > 0) {
                 closestContainer = closestContainer[0];
@@ -122,6 +123,9 @@ const setNextAction = function() {
         return;
     }
     switch (this.memory['role']) {
+        case Traveler.KEY:
+            Traveler.setAction(this);
+            break;
         case Transport.KEY:
             Transport.setAction(this);
             break;
