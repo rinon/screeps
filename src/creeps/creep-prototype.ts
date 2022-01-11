@@ -122,6 +122,10 @@ const setNextAction = function() {
     } else {
         return;
     }
+    delete this.memory['fromRoom'];
+    delete this.memory['originRoom'];
+    delete this.memory['toRoom'];
+    delete this.memory['destination'];
     switch (this.memory['role']) {
         case Traveler.KEY:
             Traveler.setAction(this);

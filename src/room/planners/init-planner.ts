@@ -72,7 +72,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                         (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);
                 });
             } else {
-                console.log('reassigning ' + nextReassignRole.oldRole + ' to ' + nextReassignRole.newRole);
+                console.log(this.room.name + ' init reassigning ' + nextReassignRole.oldRole + ' to ' + nextReassignRole.newRole);
                 this.room.reassignSingleCreep(nextReassignRole.newRole, (creep: Creep) => {
                     return creep.memory &&
                         (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);
@@ -89,6 +89,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
 
     public getNextCreepToSpawn(): CreepSpawnData {
         const transports = this.room.getNumberOfCreepsByRole(Transport.KEY);
+        const travelers = this.room.getNumberOfCreepsByRole(Traveler.KEY);
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
         const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
         const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
@@ -133,6 +134,11 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             return CreepSpawnData.build(
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
+                1);
+        } else if (this.room.energyAvailable > 600 && travelers < 2) {
+            return CreepSpawnData.build(
+                Traveler.KEY,
+                CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 450)),
                 1);
         }
         return null;

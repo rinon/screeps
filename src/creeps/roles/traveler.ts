@@ -16,14 +16,20 @@ export class Traveler {
                 if (!creep.memory['endRoom']) {
                     creep.memory['endRoom'] = creep.memory['homeRoom'];
                 }
-                if (creep.memory['endRoom'] == creep.room.name) {
-                    if (creep.room.find(FIND_SOURCES).length > 0) {
+                if (creep.memory['endRoom'] == creep.room.name && creep.memory['homeRoom'] != creep.room.name) {
+                    if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.room.find(FIND_SOURCES).length > 0) {
                         creep.goGetEnergy(true, false);
                     } else {
                         Traveler.getNextRoom(creep);
                     }
                 } else if (creep.room.name != creep.memory['endRoom']) {
                     TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['endRoom']));
+                } else if (creep.room.name == creep.memory['homeRoom']) {
+                    if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                        creep.deliverEnergyToSpawner();
+                    } else {
+                        Traveler.getNextRoom(creep);
+                    }
                 }
                 break;
             case WithdrawAction.KEY:

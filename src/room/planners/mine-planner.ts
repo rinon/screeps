@@ -86,14 +86,15 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
         const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
+        const containers = this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {return s.structureType == STRUCTURE_CONTAINER;} });
         if (builders < 2 && constructionSites > 0) {
-            return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
+            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
-        if (miners < 2) {
-            return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.MINER, type: 'single'};
+        if (miners < 2 && containers.length > 0) {
+            return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
         if (builders > 0 && constructionSites < 1) {
-            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'all'};
+            return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.BUILDER, type: 'all'};
         }
         return null;
     }
@@ -112,7 +113,7 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
                         (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);
                 });
             } else {
-                console.log('reassigning ' + nextReassignRole.oldRole + ' to ' + nextReassignRole.newRole);
+                console.log(this.room.name + ' mine reassigning ' + nextReassignRole.oldRole + ' to ' + nextReassignRole.newRole);
                 this.room.reassignSingleCreep(nextReassignRole.newRole, (creep: Creep) => {
                     return creep.memory &&
                         (!creep.memory['role'] || creep.memory['role'] === nextReassignRole.oldRole);

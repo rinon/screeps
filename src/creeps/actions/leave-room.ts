@@ -93,6 +93,7 @@ export class LeaveRoomAction {
 
         creep.memory['destination'] = exitPoint;
         creep.memory['toRoom'] = creep.room.getAdjacentRoomName(direction);
+        creep.memory['endRoom'] = creep.memory['toRoom'];
         creep.memory['originRoom'] = creep.room.name;
         creep.memory['action'] = this.KEY;
         switch (direction) {
