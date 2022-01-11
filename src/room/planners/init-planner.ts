@@ -44,6 +44,8 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         } else if (spawns < 1 && miners < 2 && travelers > 0) {
             return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
+        } else if (spawns < 1 && travelers > 0) {
+            return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
         if (spawns > 0 && transports < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
