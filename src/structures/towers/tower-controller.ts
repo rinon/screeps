@@ -21,18 +21,26 @@ export class TowerController {
                     tower.heal(damagedCreep);
                     return;
                 }
+                let sources:number = 0;
+                if (tower.room.memory['sources'] && tower.room.memory['sources']) {
+                    _.forEach(tower.room.memory['sources']['sources'], (source:number, id:string) => {
+                        sources++;
+                    })
+                } else {
+                    sources = tower.room.find(FIND_SOURCES_ACTIVE).length;
+                }
                 if (tower.store.getUsedCapacity(RESOURCE_ENERGY) > 750 &&
-                        tower.room.controller.level > 4 &&
+                        tower.room.controller.level > 2 &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) > 0 &&
-                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > 2 &&
-                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 4 &&
+                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > sources &&
+                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 2 * sources &&
                         tower.room.energyAvailable > 0.6 * tower.room.energyCapacityAvailable &&
-                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) >= Math.max(2, tower.room.getNumberOfSources())) {
-                    let damagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {filter: (s: Structure) => {
+                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) >= sources) {
+                    let damagedStructure = _.sortBy(tower.room.find(FIND_STRUCTURES, {filter: (s: Structure) => {
                             return s.hits / s.hitsMax < 0.75 && s.hits < 150000;
-                        }});
-                    if (damagedStructure) {
-                        tower.repair(damagedStructure);
+                        }}), (s:Structure) => { return s.hits; });
+                    if (damagedStructure && damagedStructure.length > 0) {
+                        tower.repair(damagedStructure[0]);
                         return;
                     }
                 }

@@ -48,7 +48,7 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
             _.forEach(sources, (source:Source) => {
                 let currentNumberOfSpots = this.room.getNumberOfMiningSpacesAtSource(source.id);
                 totalSourceSpots += currentNumberOfSpots;
-                this.room.memory['sources'][source.id] = currentNumberOfSpots;
+                this.room.memory['sources']['sources'][source.id] = currentNumberOfSpots;
             });
             Memory['roomData'][this.room.name]['sources']['spots'] = totalSourceSpots;
             return;

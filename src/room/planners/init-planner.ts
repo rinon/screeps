@@ -53,7 +53,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         if (spawns > 0 && transports < 1 && upgraders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
-        if (upgraders < 1 && builders > 0) {
+        if (upgraders < 1 && builders > 0 && this.room.controller.level < 8) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
         if (spawns > 0 && builders > transports && transports < 2) {
@@ -89,10 +89,6 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             nextReassignRole = this.getNextReassignRole();
         }
         this.creepsAssigned = true;
-        // console.log('Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) +
-        //     ' Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) +
-        //     ' Miners: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) +
-        //     ' Builders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER));
     }
 
     public getNextCreepToSpawn(): CreepSpawnData {
@@ -101,17 +97,26 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
         const upgraders = this.room.getNumberOfCreepsByRole(Upgrader.KEY);
         const miners = this.room.getNumberOfCreepsByRole(Miner.KEY);
+        // const spawns = this.room.find(FIND_MY_SPAWNS).length;
         const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
                 return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 170;
             }}).length > 0;
         let sources:number = 0;
-        if (this.room.memory['sources']) {
-            _.forEach(this.room.memory['sources'], (source) => {
-                sources += source;
+        if (this.room.memory['sources'] && this.room.memory['sources']) {
+            _.forEach(this.room.memory['sources']['sources'], (source:number, id:string) => {
+                sources++;
             })
         } else {
             sources = this.room.find(FIND_SOURCES_ACTIVE).length;
         }
+
+        // if (spawns > 1) {
+        //     console.log('room: ' + this.room.name + ' Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) +
+        //         ' Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) +
+        //         ' Miners: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) +
+        //         ' Builders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) +
+        //         ' Sources: ' + sources);
+        // }
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
 
         if (transports < 1) {
@@ -119,7 +124,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
                 0);
-        } else if (upgraders < 1) {
+        } else if (upgraders < 1 && this.room.controller.level < 8) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
@@ -134,18 +139,19 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 transports > 1 ? 1 : 0.5);
-        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 8) ||
-                (constructionSites < 1 && transports < 7)) {
+        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 4 * sources) ||
+                (constructionSites < 1 && transports < 3 * sources + 1)) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 700)),
                 transports > 1 ? 1 : 0.4);
-        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders) {
+        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders
+                && this.room.controller.level < 8) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
                 1);
-        } else if (builders < 6 && constructionSites > 0) {
+        } else if (builders < 3 * sources && constructionSites > 0) {
             return CreepSpawnData.build(
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
@@ -196,7 +202,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             _.forEach(sources, (source:Source) => {
                 let currentNumberOfSpots = this.room.getNumberOfMiningSpacesAtSource(source.id);
                 totalSourceSpots += currentNumberOfSpots;
-                this.room.memory['sources'][source.id] = currentNumberOfSpots;
+                this.room.memory['sources']['sources'][source.id] = currentNumberOfSpots;
             });
             Memory['roomData'][this.room.name]['sources']['spots'] = totalSourceSpots;
             return;
@@ -474,7 +480,7 @@ function planRoadAlongPath(room:Room, path:Array<PathStep>) {
         _.forEach(path, (pathStep:PathStep) => {
             if (pathStep.x !== 0 && pathStep.y !== 0 &&
                 pathStep.x !== 49 && pathStep.y !== 49 &&
-                !Planner.hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name))) {
+                !Planner.hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name), true)) {
                 room.memory['sites'][0][pathStep.x + ":" + pathStep.y] = STRUCTURE_ROAD;
             }
         });
@@ -522,19 +528,19 @@ function getPositionPlusShapeBuffer(room:Room, type:StructureConstant):Construct
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (Planner.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (Planner.hasPlannedStructureAt(currentPlannedPosition, false) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (positionOk) {
             const topPosition = new RoomPosition(currentX, currentY+1, room.name);
-            const topPosOk = !Planner.hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
+            const topPosOk = !Planner.hasPlannedStructureAt(topPosition, true) && room.isSpotOpen(topPosition);
             const bottomPosition = new RoomPosition(currentX, currentY-1, room.name);
-            const bottomPosOk = !Planner.hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
+            const bottomPosOk = !Planner.hasPlannedStructureAt(bottomPosition, true) && room.isSpotOpen(bottomPosition);
             const rightPosition = new RoomPosition(currentX+1, currentY, room.name);
-            const rightPosOk = !Planner.hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
+            const rightPosOk = !Planner.hasPlannedStructureAt(rightPosition, true) && room.isSpotOpen(rightPosition);
             const leftPosition = new RoomPosition(currentX-1, currentY, room.name);
-            const leftPosOk = !Planner.hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
+            const leftPosOk = !Planner.hasPlannedStructureAt(leftPosition, true) && room.isSpotOpen(leftPosition);
             positionOk = topPosOk && bottomPosOk && leftPosOk && rightPosOk;
         }
         if (positionOk) {
@@ -560,14 +566,14 @@ function getPositionWithBuffer(room:Room, buffer:number, type:StructureConstant)
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (Planner.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (Planner.hasPlannedStructureAt(currentPlannedPosition, false) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (buffer > 0 && positionOk) {
             loopFromCenter(room, currentX, currentY, 1 + 2 * buffer, (bufferX:number, bufferY:number) => {
                 let currentBufferPosition:RoomPosition = new RoomPosition(bufferX, bufferY, room.name);
-                if (Planner.hasPlannedStructureAt(currentBufferPosition) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
+                if (Planner.hasPlannedStructureAt(currentBufferPosition, true) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
                     return c.type === 'structure' && c.structure.structureType !== STRUCTURE_ROAD; }).length) {
                     positionOk = false;
                     return true;

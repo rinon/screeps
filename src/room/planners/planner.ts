@@ -73,7 +73,7 @@ export class Planner {
             if (!positionMap[s.x + ":" + s.y]) {
                 return;
             }
-            if (Planner.hasPlannedStructureAt(new RoomPosition(s.x, s.y, pos.roomName))) {
+            if (Planner.hasPlannedStructureAt(new RoomPosition(s.x, s.y, pos.roomName), false)) {
                 delete positionMap[s.x + ":" + s.y];
                 return;
             }
@@ -90,7 +90,7 @@ export class Planner {
         return null;
     }
 
-    public static hasPlannedStructureAt(roomPosition:RoomPosition):boolean {
+    public static hasPlannedStructureAt(roomPosition:RoomPosition, ignoreRoads:boolean):boolean {
         const room = Game.rooms[roomPosition.roomName];
         if (!room.memory['sites']) {
             return false;
@@ -98,7 +98,9 @@ export class Planner {
         for (let i = 0; i < 9; i++) {
             let key = roomPosition.x + ":" + roomPosition.y;
             if (room.memory['sites'][i] && room.memory['sites'][i][key]) {
-                return true;
+                if (!ignoreRoads || room.memory['sites'][i][key] != 'road') {
+                    return true;
+                }
             }
         }
         return false;
