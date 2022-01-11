@@ -104,6 +104,14 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
                 return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 170;
             }}).length > 0;
+        let sources:number = 0;
+        if (this.room.memory['sources']) {
+            _.forEach(this.room.memory['sources'], (source) => {
+                sources += source;
+            })
+        } else {
+            sources = this.room.find(FIND_SOURCES_ACTIVE).length;
+        }
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
 
         if (transports < 1) {
@@ -121,8 +129,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 0);
-        } else if (miners < Math.max(2, this.room.getNumberOfSources()) || (minerNearDeath
-                && miners <= Math.max(2, this.room.getNumberOfSources()))) {
+        } else if (miners < sources || (minerNearDeath && miners <= sources)) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
