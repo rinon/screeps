@@ -1,6 +1,50 @@
 import * as _ from "lodash";
 
 export class GrandStrategyPlanner {
+    static getBestRoomToClaim(room:Room, reserve:boolean):string {
+        let mostSources = 0;
+        let mostSpots = 0;
+        let bestRoom = null;
+        _.forEach(Memory['roomData'], (roomData, key) => {
+            let currentRoom = Game.rooms[key];
+            if (!currentRoom || !currentRoom.controller || currentRoom.controller.my) {
+                return;
+            }
+            if (currentRoom && reserve && GrandStrategyPlanner.canReserve(Memory['username'], currentRoom)) {
+                return;
+            }
+            if (room && GrandStrategyPlanner.getDistanceBetweenTwoRooms(room.name, key) > 3) {
+                return;
+            }
+            let numberOfSources = 0;
+            let numberOfSpots = 0;
+            if (roomData && roomData['sources']) {
+                numberOfSources = roomData['sources']['qty'];
+                numberOfSpots = roomData['sources']['spots'];
+            }
+
+            if (numberOfSources > mostSources ||
+                (numberOfSources === mostSources && mostSpots > numberOfSpots)) {
+                bestRoom = key;
+                mostSpots = numberOfSpots;
+                mostSources = numberOfSources;
+            }
+        });
+        return bestRoom;
+    }
+
+    static canClaimAnyRoom():boolean {
+        let numberOfOwnedRooms = _.filter(Game.rooms, (r) => {
+            return r.controller && r.controller.my;
+        }).length;
+        return Game.gcl.level > numberOfOwnedRooms;
+    }
+
+    static canReserve(username:string, room:Room):boolean {
+        return room.controller && (!room.controller.reservation || room.controller.reservation.username === username)
+            && !room.controller.my && !room.controller.owner;
+    }
+
     static findTravelerRoom(creep:Creep):string {
         let helpRoom = null;
         let helpReallyNeeded = false;

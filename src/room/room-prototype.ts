@@ -10,12 +10,7 @@ import {MinePlanner} from "./planners/mine-planner";
 import {VoidPlanner} from "./planners/void-planner";
 
 const getPlanner = function(room: Room): RoomPlannerInterface {
-    if (room.memory && room.memory['plan']) {
-        return getPlannerByName(room, room.memory['plan']);
-    }
-
-    room.memory['plan'] = getPlannerType(room);
-    return new InitPlanner(room);
+    return getPlannerByName(room, getPlannerType(room));
 };
 
 function getPlannerType(room: Room):string {

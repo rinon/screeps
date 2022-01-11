@@ -1,6 +1,10 @@
 import {CreepSpawnData} from "./creep-spawn-data";
 
 export class CreepBodyBuilder {
+    static buildClaimer(): Array<BodyPartConstant> {
+        return [ MOVE, CLAIM ];
+    }
+
     static buildBasicWorker(energyAvailable: number): Array<BodyPartConstant> {
         let bodyArray:Array<BodyPartConstant> = [ MOVE, CARRY, WORK ];
         energyAvailable -= 200;

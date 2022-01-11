@@ -87,13 +87,13 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES).length;
         const builders = this.room.getNumberOfCreepsByRole(Builder.KEY);
         const containers = this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {return s.structureType == STRUCTURE_CONTAINER;} });
-        if (builders < 2 && constructionSites > 0) {
+        if ((builders < 2 && constructionSites > 0) || builders < 1) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
         if (miners < 2 && containers.length > 0) {
             return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
-        if (builders > 0 && constructionSites < 1) {
+        if (builders > 1 && constructionSites < 1) {
             return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.BUILDER, type: 'all'};
         }
         return null;

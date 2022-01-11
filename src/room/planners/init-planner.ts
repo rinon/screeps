@@ -10,6 +10,8 @@ import * as _ from "lodash";
 import {ConstructionSiteData} from "../../structures/construction/construction-site-data";
 import {Planner} from "./planner";
 import {Traveler} from "../../creeps/roles/traveler";
+import {GrandStrategyPlanner} from "../../war/grand-strategy-planner";
+import {Claimer} from "../../creeps/roles/claimer";
 
 export class InitPlanner extends Planner implements RoomPlannerInterface {
     private room: Room;
@@ -38,17 +40,21 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         } else if (spawns < 1 && upgraders < 1 && miners > 0) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.MINER, type: 'single'};
+        } else if (spawns < 1 && builders < 3 && travelers > 0) {
+            return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
+        } else if (spawns < 1 && miners < 2 && travelers > 0) {
+            return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
-        if (transports < 1 && builders > 0) {
+        if (spawns > 0 && transports < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        if (transports < 1 && upgraders > 0) {
+        if (spawns > 0 && transports < 1 && upgraders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
         if (upgraders < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
-        if (builders > transports && transports < 2) {
+        if (spawns > 0 && builders > transports && transports < 2) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
         if (((upgraders / 2 > builders && constructionSites > 0) || builders < 1) && upgraders > 1) {
@@ -81,10 +87,10 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             nextReassignRole = this.getNextReassignRole();
         }
         this.creepsAssigned = true;
-        console.log('Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) +
-            ' Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) +
-            ' Miners: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) +
-            ' Builders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER));
+        // console.log('Upgraders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) +
+        //     ' Transport: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) +
+        //     ' Miners: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) +
+        //     ' Builders: ' + this.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER));
     }
 
     public getNextCreepToSpawn(): CreepSpawnData {
@@ -135,6 +141,10 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Builder.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
                 1);
+        } else if (GrandStrategyPlanner.canClaimAnyRoom()) { // TODO only build 1 for the room
+            return CreepSpawnData.build(
+                Claimer.KEY,
+                CreepBodyBuilder.buildClaimer(), 0.5);
         } else if (this.room.energyAvailable > 600 && travelers < 2) {
             return CreepSpawnData.build(
                 Traveler.KEY,
@@ -452,7 +462,7 @@ function planRoadAlongPath(room:Room, path:Array<PathStep>) {
         _.forEach(path, (pathStep:PathStep) => {
             if (pathStep.x !== 0 && pathStep.y !== 0 &&
                 pathStep.x !== 49 && pathStep.y !== 49 &&
-                !this.hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name))) {
+                !Planner.hasPlannedStructureAt(new RoomPosition(pathStep.x, pathStep.y, room.name))) {
                 room.memory['sites'][0][pathStep.x + ":" + pathStep.y] = STRUCTURE_ROAD;
             }
         });
@@ -500,19 +510,19 @@ function getPositionPlusShapeBuffer(room:Room, type:StructureConstant):Construct
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (this.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (Planner.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (positionOk) {
             const topPosition = new RoomPosition(currentX, currentY+1, room.name);
-            const topPosOk = !this.hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
+            const topPosOk = !Planner.hasPlannedStructureAt(topPosition) && room.isSpotOpen(topPosition);
             const bottomPosition = new RoomPosition(currentX, currentY-1, room.name);
-            const bottomPosOk = !this.hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
+            const bottomPosOk = !Planner.hasPlannedStructureAt(bottomPosition) && room.isSpotOpen(bottomPosition);
             const rightPosition = new RoomPosition(currentX+1, currentY, room.name);
-            const rightPosOk = !this.hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
+            const rightPosOk = !Planner.hasPlannedStructureAt(rightPosition) && room.isSpotOpen(rightPosition);
             const leftPosition = new RoomPosition(currentX-1, currentY, room.name);
-            const leftPosOk = !this.hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
+            const leftPosOk = !Planner.hasPlannedStructureAt(leftPosition) && room.isSpotOpen(leftPosition);
             positionOk = topPosOk && bottomPosOk && leftPosOk && rightPosOk;
         }
         if (positionOk) {
@@ -538,14 +548,14 @@ function getPositionWithBuffer(room:Room, buffer:number, type:StructureConstant)
         room.memory['loopCenter'][currentX + ":" + currentY] = true;
         let positionOk = true;
         let currentPlannedPosition:RoomPosition = new RoomPosition(currentX, currentY, room.name);
-        if (this.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
+        if (Planner.hasPlannedStructureAt(currentPlannedPosition) || _.filter(room.lookAt(currentX, currentY), (c) => {
             return c.type === 'structure' || (c.type === 'terrain' && c.terrain === 'wall'); }).length) {
             positionOk = false;
         }
         if (buffer > 0 && positionOk) {
             loopFromCenter(room, currentX, currentY, 1 + 2 * buffer, (bufferX:number, bufferY:number) => {
                 let currentBufferPosition:RoomPosition = new RoomPosition(bufferX, bufferY, room.name);
-                if (this.hasPlannedStructureAt(currentBufferPosition) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
+                if (Planner.hasPlannedStructureAt(currentBufferPosition) || _.filter(room.lookAt(bufferX, bufferY),(c:LookAtResultWithPos) => {
                     return c.type === 'structure' && c.structure.structureType !== STRUCTURE_ROAD; }).length) {
                     positionOk = false;
                     return true;

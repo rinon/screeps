@@ -18,6 +18,7 @@ import {Builder} from "./roles/builder";
 import {Miner} from "./roles/miner";
 import * as _ from "lodash";
 import {Traveler} from "./roles/traveler";
+import {Claimer} from "./roles/claimer";
 
 
 const moveToTarget = function() {
@@ -127,6 +128,9 @@ const setNextAction = function() {
     delete this.memory['toRoom'];
     delete this.memory['destination'];
     switch (this.memory['role']) {
+        case Claimer.KEY:
+            Claimer.setAction(this);
+            break;
         case Traveler.KEY:
             Traveler.setAction(this);
             break;

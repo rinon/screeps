@@ -3,6 +3,9 @@ export class LeaveRoomAction {
     static KEY = 'leave-room';
 
     static getRandomExit(room:Room):ExitConstant {
+        if (!room.memory['exits']) {
+            return null;
+        }
         let directions = [ ];
         if (room.memory['exits'][FIND_EXIT_TOP]) {
             directions.push(FIND_EXIT_TOP);
@@ -82,6 +85,9 @@ export class LeaveRoomAction {
         creep.memory['fromRoom'] = creep.room.name;
         if (!direction) {
             direction = LeaveRoomAction.getRandomExit(creep.room);
+        }
+        if (!direction) {
+            return;
         }
         let exitPoint = creep.pos.findClosestByPath(direction);
         if (!exitPoint || !creep.room.memory['exits'][direction]) {
