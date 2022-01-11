@@ -42,7 +42,11 @@ export class Traveler {
             case TransferAction.KEY:
             default:
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                    creep.deliverEnergyToSpawner();
+                    if (creep.room.name == creep.memory['homeRoom']) {
+                        creep.deliverEnergyToSpawner();
+                    } else {
+                        TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['homeRoom']));
+                    }
                 } else {
                     Traveler.getNextRoom(creep);
                 }

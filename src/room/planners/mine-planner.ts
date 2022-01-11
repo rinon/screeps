@@ -93,18 +93,22 @@ export class MinePlanner extends Planner implements RoomPlannerInterface {
         if ((builders < 2 && constructionSites > 0) || builders < 1) {
             return { newRole: CreepRoleEnum.BUILDER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
         }
-        if (miners < containers.length) {
-            return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
-        }
-        if (builders > 1 && constructionSites < 1) {
-            return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.BUILDER, type: 'all'};
-        }
         let freeContainers = false;
+        let containersWithEnergy = false;
         for (let container of containers) {
+            if (container.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                containersWithEnergy = true;
+            }
             if (container.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 freeContainers = true;
                 break;
             }
+        }
+        if (!containersWithEnergy && miners < containers.length) {
+            return { newRole: CreepRoleEnum.MINER, oldRole: CreepRoleEnum.TRAVELER, type: 'single'};
+        }
+        if (builders > 1 && constructionSites < 1) {
+            return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.BUILDER, type: 'all'};
         }
         if (!freeContainers) {
             return { newRole: CreepRoleEnum.TRAVELER, oldRole: CreepRoleEnum.MINER, type: 'all'};
