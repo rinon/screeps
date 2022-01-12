@@ -124,7 +124,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
                 0);
-        } else if (upgraders < 1 && this.room.controller.level < 8) {
+        } else if (upgraders < 1) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
