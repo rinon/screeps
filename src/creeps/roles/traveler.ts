@@ -16,19 +16,21 @@ export class Traveler {
                 if (!creep.memory['endRoom']) {
                     creep.memory['endRoom'] = creep.memory['homeRoom'];
                 }
-                if (creep.memory['endRoom'] == creep.room.name && creep.memory['homeRoom'] != creep.room.name) {
+                if (creep.room.name != creep.memory['endRoom']) {
+                    if (creep.room.controller && creep.room.controller.my && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                        creep.deliverEnergyToSpawner();
+                    } else {
+                        TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['endRoom']));
+                    }
+                } else {
                     if (creep.room.controller && creep.room.controller.my) {
-                        Traveler.getNextRoom(creep);
+                        if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.deliverEnergyToSpawner();
+                        } else {
+                            Traveler.getNextRoom(creep);
+                        }
                     } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.room.find(FIND_SOURCES).length > 0) {
                         creep.goGetEnergy(true, false);
-                    } else {
-                        Traveler.getNextRoom(creep);
-                    }
-                } else if (creep.room.name != creep.memory['endRoom']) {
-                    TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['endRoom']));
-                } else if (creep.room.name == creep.memory['homeRoom']) {
-                    if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                        creep.deliverEnergyToSpawner();
                     } else {
                         Traveler.getNextRoom(creep);
                     }
@@ -36,13 +38,14 @@ export class Traveler {
                 break;
             case WithdrawAction.KEY:
             case MineEnergyAction.KEY:
-                creep.memory['endRoom'] = creep.memory['homeRoom'];
+                let destinationRoomName:string = GrandStrategyPlanner.findNewTravelerHomeRoom(creep);
+                creep.memory['endRoom'] = destinationRoomName == null ? creep.memory['homeRoom'] : destinationRoomName;
                 TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['endRoom']));
                 break;
             case TransferAction.KEY:
             default:
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                    if (creep.room.name == creep.memory['homeRoom']) {
+                    if (creep.room.controller && creep.room.controller.my) {
                         creep.deliverEnergyToSpawner();
                     } else {
                         TravelingAction.setAction(creep, new RoomPosition(25, 25, creep.memory['homeRoom']));
@@ -55,8 +58,8 @@ export class Traveler {
         creep.runAction();
     }
 
-    private static getNextRoom(creep) {
-        creep.memory['endRoom'] = GrandStrategyPlanner.findTravelerRoom(creep);
+    public static getNextRoom(creep) {
+        creep.memory['endRoom'] = GrandStrategyPlanner.findTravelerDestinationRoom(creep);
         if (!creep.memory['endRoom']) {
             LeaveRoomAction.setAction(creep, null);
         } else {

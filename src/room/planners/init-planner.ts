@@ -101,6 +101,9 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         const minerNearDeath = this.room.find(FIND_MY_CREEPS, {filter: (creep: Creep) => {
                 return creep.memory && creep.memory['role'] == Miner.KEY && creep.ticksToLive < 170;
             }}).length > 0;
+        const hasContainers: boolean = this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
+                return s.structureType == STRUCTURE_CONTAINER;
+            }}).length > 0;
         let sources:number = 0;
         if (this.room.memory['sources'] && this.room.memory['sources']) {
             _.forEach(this.room.memory['sources']['sources'], (source:number, id:string) => {
@@ -122,25 +125,26 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         if (transports < 1) {
             return CreepSpawnData.build(
                 Transport.KEY,
-                CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)),
+                hasContainers ? CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 350)) :
+                    CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 350)),
                 0);
         } else if (upgraders < 1) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 600)),
                 0);
-        } else if (miners < 1) {
+        } else if (miners < 1 && hasContainers) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 0);
-        } else if (miners < sources || (minerNearDeath && miners <= sources)) {
+        } else if (hasContainers && (miners < sources || (minerNearDeath && miners <= sources))) {
             return CreepSpawnData.build(
                 Miner.KEY,
                 CreepBodyBuilder.buildMiner(Math.min(this.room.energyAvailable, 750)),
                 transports > 1 ? 1 : 0.5);
-        } else if (transports < 3 || (transports < builders + upgraders / 2 && transports < 4 * sources) ||
-                (constructionSites < 1 && transports < 3 * sources + 1)) {
+        } else if (hasContainers && (transports < 3 || (transports < builders + upgraders / 2 && transports < 4 * sources) ||
+                (constructionSites < 1 && transports < 3 * sources + 1))) {
             return CreepSpawnData.build(
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 700)),

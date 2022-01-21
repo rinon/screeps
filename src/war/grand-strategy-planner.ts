@@ -45,7 +45,28 @@ export class GrandStrategyPlanner {
             && !room.controller.my && !room.controller.owner;
     }
 
-    static findTravelerRoom(creep:Creep):string {
+    static findNewTravelerHomeRoom(creep:Creep):string {
+        let helpRoom = null;
+        let leastEnergy = 99999;
+        _.forEach(Game.rooms, (room:Room) => {
+            if (room.name === creep.memory['endRoom']) {
+                return;
+            }
+            if (!room.controller || !room.controller.my) {
+                return;
+            }
+            if (this.getDistanceBetweenTwoRooms(room.name, creep.room.name) > 4) {
+                return;
+            }
+            if (leastEnergy > room.energyAvailable) {
+                leastEnergy = room.energyAvailable;
+                helpRoom = room.name;
+            }
+        });
+        return helpRoom;
+    }
+
+    static findTravelerDestinationRoom(creep:Creep):string {
         let helpRoom = null;
         let helpReallyNeeded = false;
         let emergencyHelpNeeded = false;

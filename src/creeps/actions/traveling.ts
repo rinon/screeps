@@ -37,6 +37,10 @@ export class TravelingAction {
         if (!creep.memory['destination'] && creep.memory['toRoom']) {
             creep.memory['fromRoom'] = creep.room.name;
             let exitDirection = creep.room.findExitTo(creep.memory['toRoom']);
+            if (!creep.room.memory['exits']) {
+                delete creep.room.memory['exits'];
+                return;
+            }
             if (exitDirection && creep.room.memory['exits'][exitDirection]) {
                 creep.memory['destination'] = creep.pos.findClosestByPath(<ExitConstant> exitDirection);
             } else {

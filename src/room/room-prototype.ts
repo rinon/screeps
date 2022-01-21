@@ -8,6 +8,7 @@ import {Transport} from "../creeps/roles/transport";
 import {Miner} from "../creeps/roles/miner";
 import {MinePlanner} from "./planners/mine-planner";
 import {VoidPlanner} from "./planners/void-planner";
+import {Traveler} from "../creeps/roles/traveler";
 
 const getPlanner = function(room: Room): RoomPlannerInterface {
     return getPlannerByName(room, getPlannerType(room));
@@ -306,7 +307,11 @@ const reassignIdleCreep = function(creep: Creep) {
     }
     const newRoleObj = getPlanner(this).getNextReassignRole();
     if (newRoleObj == null) {
-        WaitAction.setActionUntilNextTick(creep);
+        if (oldRole == Traveler.KEY) {
+            Traveler.getNextRoom(creep);
+        } else {
+            WaitAction.setActionUntilNextTick(creep);
+        }
         return;
     }
     const newRole = newRoleObj.newRole;
