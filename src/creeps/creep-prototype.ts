@@ -100,7 +100,12 @@ const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
         if (hasWorkComponent) {
             MineEnergyAction.setAction(this);
         } else {
-            WaitAction.setActionUntilNextTick(this);
+            let closestDroppedEnergy:Array<Resource> = this.room.find(FIND_DROPPED_RESOURCES);
+            if (closestDroppedEnergy.length > 0 && closestDroppedEnergy[0].resourceType == RESOURCE_ENERGY) {
+                PickupAction.setAction(this, closestDroppedEnergy[0]);
+            } else {
+                WaitAction.setActionUntilNextTick(this);
+            }
         }
     }
 };

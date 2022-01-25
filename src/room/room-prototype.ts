@@ -172,6 +172,20 @@ function initCreepCountArray(creepCountArray: Map<CreepRoleEnum, number>, room: 
                 }
             }
         });
+        _.forEach(room.find(FIND_MY_SPAWNS), (spawn:StructureSpawn) => {
+            if (spawn.spawning) {
+                for (let creepName in CreepRoleEnum) {
+                    if (isNaN(Number(creepName)) && spawn.spawning.name.indexOf(creepName.toLowerCase()) != -1) {
+                        const creepEnum:CreepRoleEnum = CreepRoleEnum[creepName];
+                        if (creepCountArray.has(creepEnum)) {
+                            creepCountArray.set(creepEnum, creepCountArray.get(creepEnum) + 1);
+                        } else {
+                            creepCountArray.set(creepEnum, 1);
+                        }
+                    }
+                }
+            }
+        });
     }
     return creepCountArray;
 }
