@@ -104,7 +104,12 @@ const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
             if (closestDroppedEnergy.length > 0 && closestDroppedEnergy[0].resourceType == RESOURCE_ENERGY) {
                 PickupAction.setAction(this, closestDroppedEnergy[0]);
             } else {
-                WaitAction.setActionUntilNextTick(this);
+                let closestTombstone:Array<Tombstone> = this.room.find(FIND_TOMBSTONES);
+                if (closestTombstone.length > 0 && closestTombstone[0].store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    WithdrawAction.setAction(this, closestTombstone[0], RESOURCE_ENERGY);
+                } else {
+                    WaitAction.setActionUntilNextTick(this);
+                }
             }
         }
     }
