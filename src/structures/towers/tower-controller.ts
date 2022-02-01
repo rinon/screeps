@@ -29,10 +29,11 @@ export class TowerController {
                 } else {
                     sources = tower.room.find(FIND_SOURCES_ACTIVE).length;
                 }
+                const repairMinUpgraders = tower.room.controller.level > 7 ? 0 : sources;
                 if (tower.store.getUsedCapacity(RESOURCE_ENERGY) > 750 &&
                         tower.room.controller.level > 2 &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.BUILDER) > 0 &&
-                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > sources &&
+                        tower.room.getNumberOfCreepsByRole(CreepRoleEnum.UPGRADER) > repairMinUpgraders &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.TRANSPORT) > 2 * sources &&
                         tower.room.energyAvailable > 0.6 * tower.room.energyCapacityAvailable &&
                         tower.room.getNumberOfCreepsByRole(CreepRoleEnum.MINER) >= sources) {

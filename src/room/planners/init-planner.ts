@@ -53,7 +53,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
         if (spawns > 0 && transports < 1 && upgraders > 0) {
             return { newRole: CreepRoleEnum.TRANSPORT, oldRole: CreepRoleEnum.UPGRADER, type: 'single'};
         }
-        if (upgraders < 1 && builders > 0 && this.room.controller.level < 8) {
+        if (upgraders < 1 && builders > 0) {
             return { newRole: CreepRoleEnum.UPGRADER, oldRole: CreepRoleEnum.BUILDER, type: 'single'};
         }
         if (spawns > 0 && builders > transports && transports < 2) {
@@ -149,8 +149,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
                 Transport.KEY,
                 CreepBodyBuilder.buildTransport(Math.min(this.room.energyAvailable, 700)),
                 transports > 1 ? 1 : 0.4);
-        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders
-                && this.room.controller.level < 8) {
+        } else if (upgraders + 1 < Math.max(2, this.room.getTotalNumberOfMiningSpaces()) && upgraders / 2 <= builders) {
             return CreepSpawnData.build(
                 Upgrader.KEY,
                 CreepBodyBuilder.buildBasicWorker(Math.min(this.room.energyAvailable, 900)),
