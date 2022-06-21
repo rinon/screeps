@@ -54,20 +54,20 @@ const moveToTarget = function() {
 const goGetEnergy = function(hasWorkComponent: boolean, findHighest: boolean) {
     let closestContainer = null;
     if (findHighest) {
-        if (this.room.memory && !this.memory['ccontainer'] && this.room.controller) {
-            let closestContainer = null;
+        if (this.room.memory && !this.room.memory['ccontainer'] && this.room.controller) {
+            let closestControllerContainer = null;
             let closestDistance = 99;
             _.forEach(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
                     return s.structureType == STRUCTURE_CONTAINER;
                 }}), (s:Structure) => {
                 const distance = s.pos.getRangeTo(this.room.controller.pos);
-                if (!closestContainer || distance < closestDistance) {
-                    closestContainer = s;
+                if (!closestControllerContainer || distance < closestDistance) {
+                    closestControllerContainer = s;
                     closestDistance = distance;
                 }
             });
-            if (closestContainer) {
-                this.room.memory['ccontainer'] = closestContainer.id;
+            if (closestControllerContainer && closestDistance < 5) {
+                this.room.memory['ccontainer'] = closestControllerContainer.id;
             }
         }
         closestContainer = _.sortBy(this.room.find(FIND_STRUCTURES, {filter: (s:Structure) => {
