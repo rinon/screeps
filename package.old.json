@@ -1,0 +1,54 @@
+{
+  "name": "screepstsskeleton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "start": "gulp",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Multitallented/ScreepsTSSkeleton.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Multitallented/ScreepsTSSkeleton/issues"
+  },
+  "homepage": "https://github.com/Multitallented/ScreepsTSSkeleton#readme",
+  "devDependencies": {
+    "@types/jest": "^25.1.1",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^13.7.0",
+    "@types/screeps": "^3.0.0",
+    "gulp": "^4.0.2",
+    "gulp-clean": "^0.4.0",
+    "gulp-insert": "^0.5.0",
+    "gulp-jasmine": "^4.0.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "gulp-util": "^3.0.8",
+    "jest": "^25.1.0",
+    "lodash": "^4.14.0",
+    "natives": "^1.1.6",
+    "recast": "^0.18.7",
+    "screeps-server-mockup": "^1.5.0",
+    "through2": "^2.0.1",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5",
+    "webpack-stream": "^5.2.1",
+    "webpack": "^4.41.6"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ]
+  }
+}
