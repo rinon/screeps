@@ -8,7 +8,7 @@ export class AttackAction {
             creep.setNextAction();
             return;
         }
-        let invader:Creep|Structure = Game.getObjectById(creep.memory['target']);
+        let invader:Creep|Structure = Game.getObjectById(creep.memory['target']) as Creep|Structure;
         if (!invader) {
             delete creep.memory['target'];
             creep.setNextAction();
@@ -20,7 +20,6 @@ export class AttackAction {
         }
         creep.attack(invader);
         creep.moveTo(invader.pos);
-        return;
     }
 
     static setAction(creep:Creep, invader:Creep|Structure|PowerCreep) {

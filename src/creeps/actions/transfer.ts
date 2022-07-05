@@ -12,7 +12,7 @@ export class TransferAction {
         if (creep.memory['resourceType']) {
             resourceType = creep.memory['resourceType'];
         }
-        let structure:Structure = Game.getObjectById(creep.memory['target']);
+        let structure:Structure = Game.getObjectById(creep.memory['target']) as Structure;
         if (!structure || !structure['store'] || structure['store'].getFreeCapacity(resourceType) < 1) {
             if (creep.memory['role'] === 'miner' && creep.room.controller &&
                 (creep.room.controller.reservation || !creep.room.controller.my)) {

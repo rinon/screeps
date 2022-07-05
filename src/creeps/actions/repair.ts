@@ -8,7 +8,7 @@ export class RepairAction {
             creep.setNextAction();
             return;
         }
-        let buildingNeedingRepair:Structure = Game.getObjectById(creep.memory['target']);
+        let buildingNeedingRepair:Structure = Game.getObjectById(creep.memory['target']) as Structure;
         if (!buildingNeedingRepair || (buildingNeedingRepair.hits === buildingNeedingRepair.hitsMax)) {
             delete creep.memory['target'];
             creep.setNextAction();
