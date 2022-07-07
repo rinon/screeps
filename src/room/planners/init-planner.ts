@@ -189,7 +189,7 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             return;
         }
 
-        if (!this.room.memory['sources']) {
+        if (!this.room.memory['sources'] || !Memory['roomData'] || !Memory['roomData'][this.room.name]) {
             this.room.memory['sources'] = {};
             let sources = this.room.find(FIND_SOURCES);
             if (!Memory['roomData']) {
@@ -205,10 +205,26 @@ export class InitPlanner extends Planner implements RoomPlannerInterface {
             _.forEach(sources, (source:Source) => {
                 let currentNumberOfSpots = this.room.getNumberOfMiningSpacesAtSource(source.id);
                 totalSourceSpots += currentNumberOfSpots;
+                if (!this.room.memory['sources']['sources']) {
+                    this.room.memory['sources']['sources'] = {};
+                }
                 this.room.memory['sources']['sources'][source.id] = currentNumberOfSpots;
             });
             Memory['roomData'][this.room.name]['sources']['spots'] = totalSourceSpots;
             return;
+        }
+        if (!this.room.memory['sources']['sources']) {
+            let sources = this.room.find(FIND_SOURCES);
+            let totalSourceSpots = 0;
+            _.forEach(sources, (source:Source) => {
+                let currentNumberOfSpots = this.room.getNumberOfMiningSpacesAtSource(source.id);
+                totalSourceSpots += currentNumberOfSpots;
+                if (!this.room.memory['sources']['sources']) {
+                    this.room.memory['sources'] = {};
+                }
+                this.room.memory['sources']['sources'][source.id] = currentNumberOfSpots;
+            });
+            Memory['roomData'][this.room.name]['sources']['spots'] = totalSourceSpots;
         }
 
         if (!this.room.memory['exits'] || Object.keys(this.room.memory['exits']).indexOf("" + FIND_EXIT_TOP) === -1) {
